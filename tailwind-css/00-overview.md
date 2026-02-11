@@ -1,6 +1,8 @@
-# Tailwind CSS — Hướng Dẫn Chi Tiết 5 Ngày
+# Tailwind CSS v4 — Hướng Dẫn Chi Tiết 5 Ngày
 
 > **Utility-first CSS framework** - Thay vì viết CSS custom, bạn dùng các class có sẵn để style trực tiếp trong HTML.
+>
+> 📌 **Tài liệu này dành cho Tailwind CSS v4.1** (phiên bản mới nhất, 2025)
 
 ---
 
@@ -244,46 +246,43 @@ Mở file này trong browser → Thấy kết quả ngay.
 
 > ⚠️ **Lưu ý:** CDN chỉ dùng để học/prototype. Production phải dùng build tool.
 
-### Cách 2: Vite + Tailwind (Cho project thật)
+### Cách 2: Vite + Tailwind v4 (Cho project thật)
 
 ```bash
 # Bước 1: Tạo project Vite
 npm create vite@latest my-tailwind-project -- --template vanilla
 cd my-tailwind-project
 
-# Bước 2: Cài Tailwind
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
-
-# Bước 3: Cấu hình tailwind.config.js
+# Bước 2: Cài Tailwind v4
+npm install tailwindcss @tailwindcss/vite
 ```
 
-Sửa file `tailwind.config.js`:
+**Bước 3:** Sửa file `vite.config.js`:
 ```js
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [
+    tailwindcss(),
   ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
+})
 ```
 
-Sửa file `src/style.css`:
+**Bước 4:** Sửa file `src/style.css`:
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 ```
 
 ```bash
-# Bước 4: Chạy dev server
+# Bước 5: Chạy dev server
 npm run dev
 ```
+
+> 💡 **Thay đổi lớn từ v3 → v4:**
+> - Không cần `tailwind.config.js` - config trực tiếp trong CSS với `@theme`
+> - Không cần PostCSS - dùng Vite plugin
+> - Thay `@tailwind base/components/utilities` bằng `@import "tailwindcss"`
 
 ---
 

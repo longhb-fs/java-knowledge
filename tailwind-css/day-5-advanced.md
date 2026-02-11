@@ -1,6 +1,8 @@
-# Day 5: Advanced Techniques + Best Practices
+# Day 5: Advanced Techniques + Best Practices (v4)
 
-> Mục tiêu: Master animations, gradients, filters, arbitrary values, performance optimization, và best practices.
+> Mục tiêu: Master animations, gradients, filters, arbitrary values, Container Queries, performance optimization, và best practices.
+>
+> 📌 **Tài liệu này dành cho Tailwind CSS v4.1**
 
 ---
 
@@ -895,24 +897,118 @@ Khi giá trị bạn cần KHÔNG có trong Tailwind's default scale:
 
 ---
 
-## 8. Performance Optimization
+## 8. Container Queries (Mới trong v4)
 
-### Content Configuration
+### 💡 Container Queries là gì?
 
-```js
-// tailwind.config.js
-module.exports = {
-  content: [
-    // Scan these files for class names
-    './src/**/*.{html,js,ts,jsx,tsx,vue}',
-    './components/**/*.{js,ts,jsx,tsx}',
-    './pages/**/*.{js,ts,jsx,tsx}',
-
-    // Don't forget public HTML
-    './public/index.html',
-  ],
-}
 ```
+┌─────────────────────────────────────────────────────────────┐
+│  VIEWPORT-BASED (truyền thống)                               │
+│                                                              │
+│  Responsive dựa trên WIDTH CỦA VIEWPORT (màn hình)          │
+│  → md:flex = khi viewport ≥ 768px                           │
+│  → Vấn đề: Component trong sidebar nhỏ vẫn dùng style       │
+│    như khi ở main content area                              │
+│                                                              │
+│  CONTAINER QUERIES (mới)                                     │
+│                                                              │
+│  Responsive dựa trên WIDTH CỦA CONTAINER (parent)           │
+│  → @md:flex = khi CONTAINER ≥ 448px                         │
+│  → Component tự adapt theo không gian có sẵn                │
+│  → Reusable hơn!                                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Cách sử dụng
+
+```html
+<!-- Bước 1: Đánh dấu container với @container -->
+<div class="@container">
+
+  <!-- Bước 2: Dùng @breakpoint thay vì breakpoint -->
+  <div class="flex flex-col @md:flex-row @lg:gap-8">
+    <div class="@md:w-1/3">Sidebar</div>
+    <div class="@md:w-2/3">Content</div>
+  </div>
+
+</div>
+```
+
+### Container Query Breakpoints
+
+```
+┌──────────────┬─────────────┬──────────────────────────────┐
+│ Prefix       │ Min-width   │ CSS                          │
+├──────────────┼─────────────┼──────────────────────────────┤
+│ @xs:         │ 320px       │ @container (min-width: 320px)│
+│ @sm:         │ 384px       │ @container (min-width: 384px)│
+│ @md:         │ 448px       │ @container (min-width: 448px)│
+│ @lg:         │ 512px       │ @container (min-width: 512px)│
+│ @xl:         │ 576px       │ @container (min-width: 576px)│
+│ @2xl:        │ 672px       │ @container (min-width: 672px)│
+└──────────────┴─────────────┴──────────────────────────────┘
+```
+
+### Named Containers
+
+```html
+<!-- Named container -->
+<div class="@container/sidebar">
+  <!-- Chỉ respond khi sidebar container thay đổi -->
+  <div class="@md/sidebar:hidden">Hide when sidebar is medium</div>
+</div>
+
+<div class="@container/main">
+  <!-- Respond theo main container -->
+  <div class="@lg/main:grid-cols-3">3 columns when main is large</div>
+</div>
+```
+
+### 🔥 Container Query Patterns
+
+```html
+<!-- Card tự adapt theo container size -->
+<div class="@container">
+  <article class="flex flex-col @sm:flex-row gap-4">
+    <img class="w-full @sm:w-32 @sm:h-32 rounded-lg object-cover" src="...">
+    <div>
+      <h2 class="text-lg @md:text-xl font-bold">Card Title</h2>
+      <p class="text-sm @md:text-base text-gray-600">Description...</p>
+    </div>
+  </article>
+</div>
+
+<!-- Sidebar widget responsive -->
+<aside class="@container w-64">
+  <nav class="flex flex-col @xs:flex-row @xs:flex-wrap gap-2">
+    <a class="px-3 py-2 rounded @xs:flex-1 text-center">Home</a>
+    <a class="px-3 py-2 rounded @xs:flex-1 text-center">About</a>
+    <a class="px-3 py-2 rounded @xs:flex-1 text-center">Contact</a>
+  </nav>
+</aside>
+```
+
+> 💡 **Khi nào dùng Container Queries vs Media Queries:**
+> - **Media Queries (sm:, md:)**: Layout chính, page structure
+> - **Container Queries (@sm:, @md:)**: Components reusable, widgets, cards
+
+---
+
+## 9. Performance Optimization
+
+### v4: Tự động Content Detection
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  v3: Phải config content paths                               │
+│  content: ['./src/**/*.{html,js}']                          │
+│                                                              │
+│  v4: Tự động detect! Không cần config                        │
+│  Tailwind scan project tự động                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+> 💡 v4 tự động tìm và scan files trong project, không cần config `content` array.
 
 ### ⚠️ Dynamic Class Names — DANGER!
 
@@ -1007,7 +1103,7 @@ module.exports = {
 
 ---
 
-## 9. Best Practices
+## 10. Best Practices
 
 ### 1. Consistent Class Ordering
 
@@ -1139,7 +1235,7 @@ module.exports = {
 
 ---
 
-## 10. Common Patterns
+## 11. Common Patterns
 
 ### Responsive Hide/Show
 
@@ -1221,7 +1317,7 @@ module.exports = {
 
 ---
 
-## 11. Debugging Tips
+## 12. Debugging Tips
 
 ### Outline All Elements
 
@@ -1296,11 +1392,18 @@ ARBITRARY VALUES
 ├── grid-cols-[200px_1fr_200px]
 └── [clip-path:polygon(...)]
 
-PERFORMANCE
-├── content: [...] in config
-├── Avoid dynamic class concatenation
-├── safelist: [...] for dynamic classes
-└── corePlugins: { float: false }
+CONTAINER QUERIES (v4)
+├── @container       → Mark parent as container
+├── @xs:, @sm:, @md: → Container breakpoints (not viewport)
+├── @container/name  → Named containers
+└── Use for reusable components
+
+THEME CONFIG (v4)
+├── @import "tailwindcss"     → Main import
+├── @theme { --color-*: }     → Custom colors
+├── @theme { --spacing-*: }   → Custom spacing
+├── @custom-variant name ()   → Custom variants
+└── @plugin "name"            → Import plugins
 
 BEST PRACTICES
 ├── Consistent class ordering

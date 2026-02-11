@@ -820,87 +820,68 @@ export class ButtonComponent {
 
 ---
 
-## 6. Tailwind Config Customization
+## 6. Tailwind Config Customization (v4)
 
-### 💡 Hiểu cấu trúc config
+### 💡 Thay đổi lớn trong v4: CSS-first Configuration
 
-```js
-// tailwind.config.js
-module.exports = {
-  // 1. CONTENT: Nơi Tailwind scan để tìm class names
-  content: [
-    './src/**/*.{html,js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
-  ],
+```
+┌─────────────────────────────────────────────────────────────┐
+│  v3 (CŨ)                    │  v4 (MỚI)                     │
+├─────────────────────────────────────────────────────────────┤
+│  tailwind.config.js         │  @theme { } trong CSS         │
+│  module.exports = {         │  @import "tailwindcss";       │
+│    theme: { extend: {} }    │  @theme { --color-*: ... }    │
+│  }                          │                               │
+│                             │  Không cần file JS config!    │
+└─────────────────────────────────────────────────────────────┘
+```
 
-  // 2. THEME: Customize design tokens
-  theme: {
-    // 2a. EXTEND: Thêm vào defaults (RECOMMENDED)
-    extend: {
-      colors: { ... },      // Thêm màu mới
-      spacing: { ... },     // Thêm spacing mới
-      fontFamily: { ... },  // Thêm font mới
-    },
+### Cấu trúc cơ bản v4
 
-    // 2b. OVERRIDE: Thay thế defaults (CAUTION!)
-    // colors: { ... },  // Xóa hết màu mặc định!
-  },
+```css
+/* styles.css */
+@import "tailwindcss";
 
-  // 3. PLUGINS: Thêm functionality
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-  ],
+@theme {
+  /* Định nghĩa theme variables ở đây */
+  /* Mỗi variable sẽ tự động tạo utility classes */
 }
 ```
 
 ### Extending Colors
 
-```js
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        // Brand colors với đầy đủ shades
-        brand: {
-          50:  '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',  // Primary shade
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
-        },
+```css
+/* styles.css */
+@import "tailwindcss";
 
-        // Single semantic colors
-        primary: '#3b82f6',
-        secondary: '#64748b',
-        accent: '#f59e0b',
+@theme {
+  /* Brand colors - tự động tạo bg-brand-500, text-brand-500, etc. */
+  --color-brand-50:  #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
 
-        // Surface colors cho dark mode
-        surface: {
-          DEFAULT: '#ffffff',
-          secondary: '#f9fafb',
-          tertiary: '#f3f4f6',
-          dark: '#1f2937',
-          'dark-secondary': '#111827',
-        },
+  /* Single semantic colors */
+  --color-primary: #3b82f6;
+  --color-secondary: #64748b;
+  --color-accent: #f59e0b;
 
-        // Content (text) colors
-        content: {
-          DEFAULT: '#111827',
-          secondary: '#6b7280',
-          tertiary: '#9ca3af',
-          inverse: '#ffffff',
-        },
-      },
-    },
-  },
+  /* Surface colors cho dark mode */
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f9fafb;
+  --color-surface-dark: #1f2937;
+
+  /* Content (text) colors */
+  --color-content: #111827;
+  --color-content-secondary: #6b7280;
+  --color-content-inverse: #ffffff;
 }
 ```
 
@@ -914,112 +895,91 @@ module.exports = {
 
 ### Extending Typography
 
-```js
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      fontFamily: {
-        // Override default sans
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+```css
+/* styles.css */
+@import "tailwindcss";
 
-        // Add new font families
-        display: ['Poppins', 'sans-serif'],
-        mono: ['Fira Code', 'JetBrains Mono', 'monospace'],
-      },
+@theme {
+  /* Custom fonts - tạo font-display, font-mono */
+  --font-display: "Poppins", sans-serif;
+  --font-mono: "Fira Code", "JetBrains Mono", monospace;
 
-      fontSize: {
-        // Custom sizes: [size, { lineHeight, letterSpacing }]
-        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],  // 10px
-        '3xl': ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.02em' }],
-        '4xl': ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.02em' }],
-      },
-    },
-  },
+  /* Override default sans */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Custom font sizes - tạo text-2xs, text-display */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+
+  --text-display: 3rem;
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em;
 }
+```
+
+**Sử dụng:**
+
+```html
+<p class="text-2xs">Very small text</p>
+<h1 class="font-display text-display">Display Heading</h1>
+<code class="font-mono">Code here</code>
 ```
 
 ### Extending Spacing
 
-```js
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      spacing: {
-        // Tailwind default: number × 4px
-        // 4 = 16px, 8 = 32px, etc.
+```css
+/* styles.css */
+@import "tailwindcss";
 
-        // Custom values
-        '18': '4.5rem',   // 72px
-        '22': '5.5rem',   // 88px
-        '88': '22rem',    // 352px
-        '128': '32rem',   // 512px
+@theme {
+  /* Base spacing unit (default: 0.25rem = 4px) */
+  --spacing: 0.25rem;
 
-        // Percentage values
-        'full': '100%',
-        '1/2': '50%',
-        '1/3': '33.333%',
-      },
-    },
-  },
+  /* Custom spacing values */
+  --spacing-18: 4.5rem;   /* 72px - tạo p-18, m-18, gap-18 */
+  --spacing-22: 5.5rem;   /* 88px */
+  --spacing-88: 22rem;    /* 352px */
+  --spacing-128: 32rem;   /* 512px */
 }
 ```
 
-### Custom Animations
+**Sử dụng:**
 
-```js
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      animation: {
-        // name: 'keyframeName duration timingFunction iterationCount'
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'fade-in-up': 'fadeInUp 0.4s ease-out',
-        'slide-in-right': 'slideInRight 0.3s ease-out',
-        'scale-in': 'scaleIn 0.2s ease-out',
-        'spin-slow': 'spin 3s linear infinite',
-        'wiggle': 'wiggle 1s ease-in-out infinite',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      },
+```html
+<div class="p-18">Padding 72px</div>
+<div class="mt-128">Margin top 512px</div>
+```
 
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        fadeInUp: {
-          '0%': {
-            opacity: '0',
-            transform: 'translateY(10px)'
-          },
-          '100%': {
-            opacity: '1',
-            transform: 'translateY(0)'
-          },
-        },
-        slideInRight: {
-          '0%': { transform: 'translateX(100%)' },
-          '100%': { transform: 'translateX(0)' },
-        },
-        scaleIn: {
-          '0%': {
-            transform: 'scale(0.9)',
-            opacity: '0'
-          },
-          '100%': {
-            transform: 'scale(1)',
-            opacity: '1'
-          },
-        },
-        wiggle: {
-          '0%, 100%': { transform: 'rotate(-3deg)' },
-          '50%': { transform: 'rotate(3deg)' },
-        },
-      },
-    },
-  },
+### Custom Animations (v4)
+
+```css
+/* styles.css */
+@import "tailwindcss";
+
+@theme {
+  /* Custom animations - tạo animate-fade-in, animate-wiggle, etc. */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-fade-in-up: fade-in-up 0.4s ease-out;
+  --animate-slide-in-right: slide-in-right 0.3s ease-out;
+  --animate-scale-in: scale-in 0.2s ease-out;
+  --animate-spin-slow: spin 3s linear infinite;
+  --animate-wiggle: wiggle 1s ease-in-out infinite;
+}
+
+/* Keyframes định nghĩa trong CSS thường */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
 }
 ```
 
@@ -1031,34 +991,38 @@ module.exports = {
 <div class="animate-wiggle">Wiggling element</div>
 ```
 
-### Custom Shadows
+### Custom Shadows (v4)
 
-```js
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'hard': '0 4px 6px -1px rgba(0, 0, 0, 0.2)',
-        'inner-lg': 'inset 0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        'glow': '0 0 15px rgba(59, 130, 246, 0.5)',
-        'glow-lg': '0 0 30px rgba(59, 130, 246, 0.6)',
-      },
-    },
-  },
+```css
+/* styles.css */
+@import "tailwindcss";
+
+@theme {
+  /* Custom shadows - tạo shadow-soft, shadow-glow, etc. */
+  --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07);
+  --shadow-hard: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.5);
+  --shadow-glow-lg: 0 0 30px rgba(59, 130, 246, 0.6);
 }
 ```
 
 ---
 
-## 7. Plugins
+## 7. Plugins (v4)
 
 ### Official Plugins
 
 ```bash
-npm install -D @tailwindcss/forms @tailwindcss/typography @tailwindcss/aspect-ratio
+npm install @tailwindcss/typography
 ```
+
+```css
+/* styles.css - Import plugin trực tiếp trong CSS */
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+```
+
+> 💡 **v4:** Plugin import trong CSS với `@plugin`, không cần config JS
 
 ```js
 // tailwind.config.js

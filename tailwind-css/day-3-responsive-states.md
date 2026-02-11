@@ -512,32 +512,40 @@ Section Title
 
 ## 3. Dark Mode
 
-### 💡 Setup Dark Mode
+### 💡 Setup Dark Mode (Tailwind v4)
 
-Tailwind hỗ trợ 2 cách bật dark mode:
+Tailwind v4 hỗ trợ 2 cách bật dark mode:
 
-```js
-// tailwind.config.js
-module.exports = {
-  // Cách 1: 'media' - theo OS preference
-  darkMode: 'media',
+**Cách 1: Media Query (Mặc định)** - Tự động theo OS preference:
+```css
+/* Không cần config gì - đây là mặc định */
+@import "tailwindcss";
+```
 
-  // Cách 2: 'class' - theo class "dark" trên HTML (KHUYẾN KHÍCH)
-  darkMode: 'class',
-}
+**Cách 2: Class-based (Toggle bằng JS)** - Khuyến khích:
+```css
+/* styles.css */
+@import "tailwindcss";
+
+/* Override dark variant để dùng class selector */
+@custom-variant dark (&:where(.dark, .dark *));
 ```
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ MODE    │ CÁCH HOẠT ĐỘNG                                    │
+│ MODE              │ CÁCH HOẠT ĐỘNG                          │
 ├─────────────────────────────────────────────────────────────┤
-│ 'media' │ Tự động theo OS setting (prefers-color-scheme)    │
-│         │ User không thể toggle                             │
+│ Media (default)   │ Tự động theo OS setting                 │
+│                   │ prefers-color-scheme: dark              │
+│                   │ User không thể toggle                   │
 ├─────────────────────────────────────────────────────────────┤
-│ 'class' │ Bật khi có class "dark" trên <html>               │
-│         │ User có thể toggle (cần JavaScript)               │
-│         │ ← KHUYẾN KHÍCH: kiểm soát được                   │
+│ Class-based       │ Bật khi có class "dark" trên <html>     │
+│ (@custom-variant) │ User có thể toggle (cần JavaScript)     │
+│                   │ ← KHUYẾN KHÍCH: kiểm soát được          │
 └─────────────────────────────────────────────────────────────┘
+
+💡 Thay đổi từ v3: Không còn dùng tailwind.config.js
+   Thay vào đó dùng @custom-variant trong CSS
 ```
 
 ### 📐 Sử dụng Dark Mode
