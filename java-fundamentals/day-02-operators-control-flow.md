@@ -1,750 +1,777 @@
-# Day 2: Operators & Control Flow
+# Day 2: Operators & Control Flow (Toán tử & Luồng điều khiển)
 
-## Mục tiêu
-- Các loại operators trong Java
-- Câu lệnh điều kiện (if, switch)
-- Vòng lặp (for, while, do-while)
-- Arrays cơ bản
+## Mục tiêu hôm nay
+
+Sau ngày hôm nay, bạn sẽ:
+- Biết dùng các loại toán tử (operators) trong Java
+- Viết được câu lệnh điều kiện (if/else, switch) — "nếu... thì..."
+- Viết được vòng lặp (for, while, do-while) — "lặp lại cho đến khi..."
+- Biết cách dùng mảng (Array) để lưu nhiều giá trị cùng lúc
+
+### Tại sao cần học?
+
+Mọi chương trình đều cần 3 thứ:
+1. **Tính toán** → Operators (toán tử)
+2. **Ra quyết định** → Conditions (điều kiện) — "Nếu user nhập sai mật khẩu thì báo lỗi"
+3. **Lặp lại** → Loops (vòng lặp) — "Duyệt qua tất cả 1000 đơn hàng để tính tổng"
 
 ---
 
 ## 1. Operators (Toán tử)
 
-### 1.1. Arithmetic Operators (Toán tử số học)
+### 1.1. Arithmetic Operators (Toán tử số học) — phép tính cơ bản
+
+> 💡 **Ví dụ đời thường**: Giống máy tính bỏ túi — cộng, trừ, nhân, chia.
 
 ```java
 int a = 10, b = 3;
 
-System.out.println("a + b = " + (a + b));  // 13
-System.out.println("a - b = " + (a - b));  // 7
-System.out.println("a * b = " + (a * b));  // 30
-System.out.println("a / b = " + (a / b));  // 3 (chia nguyên)
-System.out.println("a % b = " + (a % b));  // 1 (phần dư)
-
-// Chia số thực
-double c = 10.0, d = 3.0;
-System.out.println("c / d = " + (c / d));  // 3.333...
-
-// Lưu ý chia nguyên
-int result = 7 / 2;      // 3
-double result2 = 7 / 2;  // 3.0 (vẫn là 3 vì 7 và 2 là int)
-double result3 = 7.0 / 2; // 3.5
-double result4 = (double) 7 / 2; // 3.5
+System.out.println("a + b = " + (a + b));  // 13  — Cộng (addition)
+System.out.println("a - b = " + (a - b));  // 7   — Trừ (subtraction)
+System.out.println("a * b = " + (a * b));  // 30  — Nhân (multiplication)
+System.out.println("a / b = " + (a / b));  // 3   — Chia (division)
+System.out.println("a % b = " + (a % b));  // 1   — Chia lấy dư (modulo)
 ```
 
-### 1.2. Assignment Operators (Toán tử gán)
+> ⚠️ **Bẫy phổ biến nhất: Chia nguyên**
+
+```java
+// Khi CẢ HAI đều là int → kết quả cũng là int (CẮT phần thập phân!)
+int ketQua1 = 7 / 2;        // = 3  (KHÔNG phải 3.5!)
+double ketQua2 = 7 / 2;     // = 3.0 (vẫn sai! vì 7/2 tính xong = 3, rồi mới chuyển sang double)
+
+// ✅ CÁCH SỬA: Ít nhất 1 bên phải là số thực
+double ketQua3 = 7.0 / 2;     // = 3.5 ✅
+double ketQua4 = (double) 7 / 2;  // = 3.5 ✅ (ép kiểu 7 thành 7.0 trước khi chia)
+```
+
+> 💡 **Mẹo nhớ phép chia lấy dư (%)**: `10 % 3 = 1` → chia 10 cho 3 được 3 dư 1. Dùng để kiểm tra chẵn/lẻ: `n % 2 == 0` → số chẵn.
+
+### 1.2. Assignment Operators (Toán tử gán) — viết tắt phép tính
 
 ```java
 int x = 10;
 
-x += 5;   // x = x + 5;  → x = 15
-x -= 3;   // x = x - 3;  → x = 12
-x *= 2;   // x = x * 2;  → x = 24
-x /= 4;   // x = x / 4;  → x = 6
-x %= 4;   // x = x % 4;  → x = 2
+x += 5;   // Viết tắt của: x = x + 5;  → x = 15
+x -= 3;   // Viết tắt của: x = x - 3;  → x = 12
+x *= 2;   // Viết tắt của: x = x * 2;  → x = 24
+x /= 4;   // Viết tắt của: x = x / 4;  → x = 6
+x %= 4;   // Viết tắt của: x = x % 4;  → x = 2
 ```
 
-### 1.3. Increment/Decrement Operators
+> 💡 **Mẹo nhớ**: `x += 5` đọc là "x cộng thêm 5". Viết tắt gọn hơn `x = x + 5`.
+
+### 1.3. Increment/Decrement (Tăng/Giảm 1)
 
 ```java
 int a = 5;
 
-// Post-increment: dùng giá trị trước, tăng sau
-System.out.println(a++);  // In 5, sau đó a = 6
-
-// Pre-increment: tăng trước, dùng sau
-System.out.println(++a);  // a = 7, in 7
-
-// Post-decrement
-int b = 5;
-System.out.println(b--);  // In 5, sau đó b = 4
-
-// Pre-decrement
-System.out.println(--b);  // b = 3, in 3
-
-// Ví dụ phức tạp
-int x = 5;
-int y = x++ + ++x;
-// x++ → dùng 5, x thành 6
-// ++x → x thành 7, dùng 7
-// y = 5 + 7 = 12
-// x = 7
+// ++ tăng thêm 1, -- giảm đi 1
+a++;   // a = 6 (tăng 1)
+a--;   // a = 5 (giảm 1, quay lại)
 ```
 
+> ⚠️ **Phân biệt `a++` và `++a`** — đây là câu hỏi phỏng vấn kinh điển!
+
+```java
+int a = 5;
+
+// a++ (Post-increment) = "dùng TRƯỚC, tăng SAU"
+System.out.println(a++);  // In ra 5 (dùng giá trị cũ), rồi mới tăng a lên 6
+
+// ++a (Pre-increment) = "tăng TRƯỚC, dùng SAU"
+System.out.println(++a);  // Tăng a lên 7 trước, rồi in ra 7
+```
+
+```
+Trạng thái a qua từng bước:
+a = 5
+a++ → in 5, a thành 6
+++a → a thành 7, in 7
+```
+
+> 💡 **Mẹo nhớ**: Dấu `++` đứng SAU (`a++`) = dùng SAU. Dấu `++` đứng TRƯỚC (`++a`) = dùng TRƯỚC.
+
 ### 1.4. Comparison Operators (Toán tử so sánh)
+
+Kết quả luôn là `true` hoặc `false`.
 
 ```java
 int a = 10, b = 20;
 
-System.out.println(a == b);  // false (bằng)
-System.out.println(a != b);  // true  (khác)
-System.out.println(a > b);   // false (lớn hơn)
-System.out.println(a < b);   // true  (nhỏ hơn)
-System.out.println(a >= b);  // false (lớn hơn hoặc bằng)
-System.out.println(a <= b);  // true  (nhỏ hơn hoặc bằng)
+System.out.println(a == b);  // false — Bằng nhau?
+System.out.println(a != b);  // true  — Khác nhau?
+System.out.println(a > b);   // false — a lớn hơn b?
+System.out.println(a < b);   // true  — a nhỏ hơn b?
+System.out.println(a >= b);  // false — a lớn hơn hoặc bằng b?
+System.out.println(a <= b);  // true  — a nhỏ hơn hoặc bằng b?
+```
 
-// So sánh String - PHẢI dùng equals()
+> 🔥 **So sánh String — BẪY KINH ĐIỂN**
+
+```java
 String s1 = "hello";
 String s2 = "hello";
 String s3 = new String("hello");
 
-System.out.println(s1 == s2);      // true (cùng reference trong String pool)
-System.out.println(s1 == s3);      // false (khác reference)
-System.out.println(s1.equals(s3)); // true (so sánh nội dung)
+System.out.println(s1 == s2);      // true  — cùng "địa chỉ" trong String pool
+System.out.println(s1 == s3);      // false — KHÁC "địa chỉ" (s3 tạo ở nơi khác)
+System.out.println(s1.equals(s3)); // true  — SO SÁNH NỘI DUNG → đúng!
+
+// ⚠️ QUY TẮC: LUÔN dùng .equals() khi so sánh String
+// == so sánh ĐỊA CHỈ bộ nhớ (reference)
+// .equals() so sánh NỘI DUNG (value)
 ```
 
-### 1.5. Logical Operators (Toán tử logic)
+> 💡 **Ví dụ đời thường**: `==` giống hỏi "Hai cuốn sách này có phải CÙNG MỘT cuốn không?" (cùng vật thể). `.equals()` giống hỏi "Hai cuốn sách này có NỘI DUNG giống nhau không?" (cùng nội dung dù khác cuốn).
+
+### 1.5. Logical Operators (Toán tử logic) — kết hợp nhiều điều kiện
 
 ```java
-boolean a = true, b = false;
+boolean troi_dep = true;
+boolean co_tien = false;
 
-// AND - cả hai đều true thì true
-System.out.println(a && b);  // false
-System.out.println(a & b);   // false (không short-circuit)
+// && (AND) — "VÀ" — cả hai ĐÚNG thì mới ĐÚNG
+System.out.println(troi_dep && co_tien);  // false — trời đẹp VÀ có tiền? Không!
 
-// OR - một trong hai true thì true
-System.out.println(a || b);  // true
-System.out.println(a | b);   // true (không short-circuit)
+// || (OR) — "HOẶC" — một trong hai ĐÚNG thì ĐÚNG
+System.out.println(troi_dep || co_tien);  // true — trời đẹp HOẶC có tiền? Có!
 
-// NOT - đảo ngược
-System.out.println(!a);      // false
+// ! (NOT) — "KHÔNG" — đảo ngược
+System.out.println(!troi_dep);            // false — KHÔNG trời đẹp? Sai!
+```
 
-// XOR - khác nhau thì true
-System.out.println(a ^ b);   // true
+> 💡 **Bảng tóm tắt**:
+> - `&&` (AND): `true && true` = true, còn lại false
+> - `||` (OR): `false || false` = false, còn lại true
+> - `!` (NOT): `!true` = false, `!false` = true
 
-// Short-circuit evaluation
+> 🔥 **Short-circuit evaluation (Đánh giá ngắn mạch)**:
+
+```java
 int x = 5;
-boolean result = (x > 10) && (++x > 5);
-// x > 10 là false → không đánh giá ++x
-// x vẫn = 5
 
-boolean result2 = (x < 10) || (++x > 5);
-// x < 10 là true → không đánh giá ++x
-// x vẫn = 5
+// && → Nếu vế trái FALSE, Java KHÔNG kiểm tra vế phải (vì kết quả chắc chắn false)
+boolean r1 = (x > 10) && (++x > 5);
+// x > 10 = false → dừng luôn, KHÔNG chạy ++x
+// x vẫn = 5!
+
+// || → Nếu vế trái TRUE, Java KHÔNG kiểm tra vế phải (vì kết quả chắc chắn true)
+boolean r2 = (x < 10) || (++x > 5);
+// x < 10 = true → dừng luôn, KHÔNG chạy ++x
+// x vẫn = 5!
 ```
 
-### 1.6. Ternary Operator (Toán tử 3 ngôi)
+### 1.6. Ternary Operator (Toán tử 3 ngôi) — if/else gọn
 
 ```java
-// condition ? valueIfTrue : valueIfFalse
+// Cú pháp: điều_kiện ? giá_trị_nếu_đúng : giá_trị_nếu_sai
 
-int age = 20;
-String status = (age >= 18) ? "Adult" : "Minor";
-System.out.println(status);  // Adult
+int tuoi = 20;
+String trangThai = (tuoi >= 18) ? "Người lớn" : "Trẻ em";
+System.out.println(trangThai);  // Người lớn
 
-// Nested ternary (không khuyến khích)
-int score = 75;
-String grade = (score >= 90) ? "A" :
-               (score >= 80) ? "B" :
-               (score >= 70) ? "C" :
-               (score >= 60) ? "D" : "F";
-System.out.println(grade);  // C
+// Tương đương với if/else:
+// String trangThai;
+// if (tuoi >= 18) {
+//     trangThai = "Người lớn";
+// } else {
+//     trangThai = "Trẻ em";
+// }
 ```
 
-### 1.7. Bitwise Operators (Toán tử bitwise)
-
-```java
-int a = 5;  // 0101 in binary
-int b = 3;  // 0011 in binary
-
-System.out.println(a & b);  // 1  (0001) - AND
-System.out.println(a | b);  // 7  (0111) - OR
-System.out.println(a ^ b);  // 6  (0110) - XOR
-System.out.println(~a);     // -6 - NOT
-
-// Shift operators
-System.out.println(a << 1); // 10 (1010) - left shift
-System.out.println(a >> 1); // 2  (0010) - right shift
-
-// Ứng dụng: nhân/chia cho 2^n nhanh
-int x = 8;
-System.out.println(x << 2); // 32 (8 * 4 = 8 * 2^2)
-System.out.println(x >> 1); // 4  (8 / 2 = 8 / 2^1)
-```
+> ⚠️ **Không nên lồng ternary**: `a ? b : c ? d : e` → khó đọc! Dùng if/else cho trường hợp phức tạp.
 
 ---
 
 ## 2. Conditional Statements (Câu lệnh điều kiện)
 
-### 2.1. if Statement
+### Tại sao cần?
+
+Chương trình cần **ra quyết định**: "Nếu mật khẩu đúng → cho đăng nhập, sai → báo lỗi". Không có điều kiện, chương trình chỉ chạy từ trên xuống dưới không phân nhánh.
+
+### 2.1. if / else if / else
 
 ```java
-int age = 20;
-
-// if đơn giản
-if (age >= 18) {
-    System.out.println("You are an adult");
+// ① if đơn giản — "Nếu... thì..."
+int tuoi = 20;
+if (tuoi >= 18) {
+    System.out.println("Bạn đủ tuổi bầu cử");
 }
 
-// if-else
-if (age >= 18) {
-    System.out.println("Adult");
+// ② if-else — "Nếu... thì..., nếu không thì..."
+if (tuoi >= 18) {
+    System.out.println("Người lớn");
 } else {
-    System.out.println("Minor");
+    System.out.println("Trẻ em");
 }
 
-// if-else if-else
-int score = 85;
-if (score >= 90) {
-    System.out.println("Grade: A");
-} else if (score >= 80) {
-    System.out.println("Grade: B");
-} else if (score >= 70) {
-    System.out.println("Grade: C");
-} else if (score >= 60) {
-    System.out.println("Grade: D");
+// ③ if - else if - else — "Nếu A thì..., nếu B thì..., còn lại thì..."
+int diem = 85;
+if (diem >= 90) {
+    System.out.println("Xếp loại: A (Xuất sắc)");
+} else if (diem >= 80) {
+    System.out.println("Xếp loại: B (Giỏi)");      // ← Chạy dòng này vì 85 >= 80
+} else if (diem >= 70) {
+    System.out.println("Xếp loại: C (Khá)");
+} else if (diem >= 60) {
+    System.out.println("Xếp loại: D (Trung bình)");
 } else {
-    System.out.println("Grade: F");
-}
-
-// Nested if
-int num = 15;
-if (num > 0) {
-    if (num % 2 == 0) {
-        System.out.println("Positive even");
-    } else {
-        System.out.println("Positive odd");
-    }
-} else {
-    System.out.println("Not positive");
+    System.out.println("Xếp loại: F (Không đạt)");
 }
 ```
 
-### 2.2. switch Statement
+> ⚠️ **Sai lầm thường gặp**:
 
 ```java
-// Switch với int/char/String
-int day = 3;
+// ❌ SAI: Quên dấu ngoặc nhọn {} khi có nhiều dòng
+if (tuoi >= 18)
+    System.out.println("Người lớn");
+    System.out.println("Được bầu cử");  // ⚠️ Dòng này LUÔN chạy! Không nằm trong if!
 
-switch (day) {
+// ✅ ĐÚNG: Luôn dùng {} cho rõ ràng
+if (tuoi >= 18) {
+    System.out.println("Người lớn");
+    System.out.println("Được bầu cử");
+}
+
+// ❌ SAI: Dùng = thay vì ==
+if (tuoi = 18) {  // Lỗi! Đây là phép GÁN, không phải SO SÁNH
+}
+if (tuoi == 18) { // ✅ ĐÚNG: == là so sánh
+}
+```
+
+### 2.2. switch — khi có nhiều trường hợp cụ thể
+
+Khi bạn cần kiểm tra 1 biến với NHIỀU giá trị cụ thể, `switch` gọn hơn nhiều `if/else if`:
+
+```java
+int thu = 3; // 1 = Thứ 2, 2 = Thứ 3, ...
+
+switch (thu) {
     case 1:
-        System.out.println("Monday");
-        break;
+        System.out.println("Thứ Hai");
+        break;     // ← BẮT BUỘC có break! Không có → chạy luôn case tiếp theo
     case 2:
-        System.out.println("Tuesday");
+        System.out.println("Thứ Ba");
         break;
     case 3:
-        System.out.println("Wednesday");
+        System.out.println("Thứ Tư");  // ← Chạy dòng này
         break;
     case 4:
-        System.out.println("Thursday");
+        System.out.println("Thứ Năm");
         break;
     case 5:
-        System.out.println("Friday");
+        System.out.println("Thứ Sáu");
         break;
     case 6:
-    case 7:
-        System.out.println("Weekend");
+    case 7:        // 2 case dùng chung 1 xử lý
+        System.out.println("Cuối tuần!");
         break;
-    default:
-        System.out.println("Invalid day");
-}
-
-// Switch với String (Java 7+)
-String fruit = "apple";
-switch (fruit) {
-    case "apple":
-        System.out.println("Red fruit");
-        break;
-    case "banana":
-        System.out.println("Yellow fruit");
-        break;
-    default:
-        System.out.println("Unknown fruit");
+    default:       // Tương tự else — nếu không match case nào
+        System.out.println("Ngày không hợp lệ!");
 }
 ```
 
-### 2.3. Switch Expression (Java 14+)
+> ⚠️ **Bẫy kinh điển: QUÊN break**
 
 ```java
-// Switch expression - arrow syntax
-int day = 3;
-String dayName = switch (day) {
-    case 1 -> "Monday";
-    case 2 -> "Tuesday";
-    case 3 -> "Wednesday";
-    case 4 -> "Thursday";
-    case 5 -> "Friday";
-    case 6, 7 -> "Weekend";
-    default -> "Invalid";
-};
-System.out.println(dayName);  // Wednesday
+int x = 1;
+switch (x) {
+    case 1:
+        System.out.println("Một");
+        // ❌ QUÊN break → "rơi" xuống case 2!
+    case 2:
+        System.out.println("Hai");
+        break;
+}
+// Kết quả: In ra CẢ "Một" VÀ "Hai"! (fall-through)
+```
 
-// Switch với yield (cho block code)
-String result = switch (day) {
-    case 1, 2, 3, 4, 5 -> {
-        System.out.println("Processing weekday...");
-        yield "Weekday";
-    }
-    case 6, 7 -> {
-        System.out.println("Processing weekend...");
-        yield "Weekend";
-    }
-    default -> "Invalid";
+### 2.3. Switch Expression (Java 14+) — cách viết hiện đại
+
+```java
+int thu = 3;
+
+// Dùng -> thay cho case/break, gọn hơn nhiều
+String tenThu = switch (thu) {
+    case 1 -> "Thứ Hai";
+    case 2 -> "Thứ Ba";
+    case 3 -> "Thứ Tư";
+    case 4 -> "Thứ Năm";
+    case 5 -> "Thứ Sáu";
+    case 6, 7 -> "Cuối tuần";   // Nhiều case 1 dòng
+    default -> "Không hợp lệ";
 };
+// Không cần break! Không bị fall-through!
+
+System.out.println(tenThu);  // Thứ Tư
 ```
 
 ---
 
 ## 3. Loops (Vòng lặp)
 
-### 3.1. for Loop
+### Tại sao cần vòng lặp?
+
+Thay vì viết 100 dòng `System.out.println()`, bạn viết 1 vòng lặp chạy 100 lần. Vòng lặp = "lặp lại một hành động cho đến khi điều kiện thỏa mãn".
+
+### 3.1. for Loop — biết trước số lần lặp
+
+> 💡 **Ví dụ đời thường**: "Làm 10 bài tập" → biết trước phải làm 10 bài.
 
 ```java
-// Basic for loop
-for (int i = 0; i < 5; i++) {
-    System.out.println("i = " + i);
-}
-// Output: 0, 1, 2, 3, 4
+// Cú pháp: for (khởi_tạo; điều_kiện; thay_đổi) { ... }
+//           for (int i = 0;  i < 5;    i++)     { ... }
+//                    ①          ②        ③
+// ① Chạy 1 lần đầu: tạo biến i = 0
+// ② Kiểm tra mỗi vòng: i < 5 đúng? Đúng → chạy code trong {}, Sai → thoát
+// ③ Sau mỗi vòng: tăng i lên 1
 
+for (int i = 0; i < 5; i++) {
+    System.out.println("Lần lặp thứ " + i);
+}
+// Kết quả: 0, 1, 2, 3, 4 (5 lần, từ 0 đến 4)
+```
+
+```
+Quá trình chạy chi tiết:
+┌──────────┬──────────┬───────────┬──────────┐
+│ Vòng     │ i = ?    │ i < 5?    │ In ra    │
+├──────────┼──────────┼───────────┼──────────┤
+│ 1        │ 0        │ true ✅   │ 0        │
+│ 2        │ 1        │ true ✅   │ 1        │
+│ 3        │ 2        │ true ✅   │ 2        │
+│ 4        │ 3        │ true ✅   │ 3        │
+│ 5        │ 4        │ true ✅   │ 4        │
+│ 6        │ 5        │ false ❌  │ THOÁT    │
+└──────────┴──────────┴───────────┴──────────┘
+```
+
+```java
 // Đếm ngược
 for (int i = 5; i > 0; i--) {
-    System.out.println(i);
+    System.out.println(i);  // 5, 4, 3, 2, 1
 }
-// Output: 5, 4, 3, 2, 1
 
-// Bước nhảy
+// Bước nhảy 2
 for (int i = 0; i <= 10; i += 2) {
     System.out.println(i);  // 0, 2, 4, 6, 8, 10
 }
-
-// Nhiều biến
-for (int i = 0, j = 10; i < j; i++, j--) {
-    System.out.println("i=" + i + ", j=" + j);
-}
-
-// Infinite loop (cẩn thận!)
-// for (;;) {
-//     System.out.println("Forever...");
-// }
 ```
 
-### 3.2. while Loop
+### 3.2. while Loop — chưa biết trước số lần lặp
+
+> 💡 **Ví dụ đời thường**: "Ăn cho đến khi no" → không biết trước ăn bao nhiêu bát.
 
 ```java
-// while - kiểm tra điều kiện trước
+// Kiểm tra điều kiện TRƯỚC, đúng thì mới chạy
 int count = 0;
-while (count < 5) {
+while (count < 5) {         // Còn nhỏ hơn 5 không? Đúng → chạy tiếp
     System.out.println("Count: " + count);
-    count++;
+    count++;                  // Nhớ tăng biến, không thì lặp vô tận!
 }
 
-// Đọc input đến khi gặp "quit"
+// Ví dụ thực tế: Đọc lệnh từ user cho đến khi gõ "quit"
 Scanner scanner = new Scanner(System.in);
-String input = "";
-while (!input.equals("quit")) {
-    System.out.print("Enter command: ");
-    input = scanner.nextLine();
-    System.out.println("You entered: " + input);
+String lenh = "";
+while (!lenh.equals("quit")) {    // Chưa gõ "quit" → tiếp tục
+    System.out.print("Nhập lệnh: ");
+    lenh = scanner.nextLine();
+    System.out.println("Bạn đã gõ: " + lenh);
 }
+System.out.println("Thoát chương trình!");
 ```
 
-### 3.3. do-while Loop
+> ⚠️ **Sai lầm: Vòng lặp vô tận (infinite loop)**
 
 ```java
-// do-while - thực hiện ít nhất 1 lần
-int count = 0;
-do {
-    System.out.println("Count: " + count);
-    count++;
-} while (count < 5);
+// ❌ SAI: Quên tăng biến đếm
+int i = 0;
+while (i < 5) {
+    System.out.println(i);
+    // Quên i++ → i mãi = 0 → vòng lặp chạy mãi không dừng!
+}
+// Nhấn Ctrl + C trong terminal hoặc nút Stop trong IDE để dừng
+```
 
-// Ví dụ: menu
+### 3.3. do-while Loop — chạy ít nhất 1 lần rồi mới kiểm tra
+
+> 💡 **Ví dụ đời thường**: "Nếm thử món ăn, rồi mới quyết định ăn tiếp hay không" → ít nhất nếm 1 lần.
+
+```java
+// Chạy code TRƯỚC, kiểm tra điều kiện SAU
 Scanner scanner = new Scanner(System.in);
-int choice;
-do {
-    System.out.println("1. Option A");
-    System.out.println("2. Option B");
-    System.out.println("0. Exit");
-    System.out.print("Choice: ");
-    choice = scanner.nextInt();
+int luaChon;
 
-    switch (choice) {
-        case 1 -> System.out.println("Selected A");
-        case 2 -> System.out.println("Selected B");
-        case 0 -> System.out.println("Goodbye!");
-        default -> System.out.println("Invalid choice");
+do {
+    System.out.println("=== MENU ===");
+    System.out.println("1. Xem danh sách");
+    System.out.println("2. Thêm mới");
+    System.out.println("0. Thoát");
+    System.out.print("Chọn: ");
+    luaChon = scanner.nextInt();
+
+    switch (luaChon) {
+        case 1 -> System.out.println("→ Đang hiển thị danh sách...");
+        case 2 -> System.out.println("→ Đang thêm mới...");
+        case 0 -> System.out.println("→ Tạm biệt!");
+        default -> System.out.println("→ Lựa chọn không hợp lệ!");
     }
-} while (choice != 0);
+    System.out.println();
+} while (luaChon != 0);  // Lặp cho đến khi chọn 0
 ```
 
-### 3.4. for-each Loop (Enhanced for)
+> 💡 **Khi nào dùng loại nào?**
+> - `for`: Biết trước số lần lặp → "Lặp 10 lần", "Duyệt mảng 100 phần tử"
+> - `while`: Chưa biết số lần, kiểm tra điều kiện trước → "Đọc file cho đến hết"
+> - `do-while`: Chạy ít nhất 1 lần → "Hiện menu, hỏi user chọn, lặp lại"
+
+### 3.4. for-each (Enhanced for) — duyệt mảng/danh sách
 
 ```java
-// Duyệt mảng
-int[] numbers = {1, 2, 3, 4, 5};
-for (int num : numbers) {
-    System.out.println(num);
-}
+// Cú pháp: for (kiểu phần_tử : mảng) { ... }
 
-// Duyệt String array
-String[] fruits = {"apple", "banana", "cherry"};
-for (String fruit : fruits) {
-    System.out.println(fruit);
+int[] diemSo = {8, 9, 7, 10, 6};
+for (int diem : diemSo) {
+    System.out.println("Điểm: " + diem);
 }
+// Tương đương:
+// for (int i = 0; i < diemSo.length; i++) {
+//     int diem = diemSo[i];
+//     System.out.println("Điểm: " + diem);
+// }
 
-// Không thể modify index
-// Không thể đi ngược
+String[] monAn = {"Phở", "Bún chả", "Bánh mì"};
+for (String mon : monAn) {
+    System.out.println("Món: " + mon);
+}
 ```
+
+> 💡 **Khi nào dùng for-each?** Khi bạn chỉ cần **đọc** từng phần tử, không cần biết index (vị trí). Nếu cần index hoặc muốn thay đổi phần tử → dùng for thường.
 
 ### 3.5. break và continue
 
 ```java
-// break - thoát khỏi vòng lặp
+// break = "THOÁT" khỏi vòng lặp ngay lập tức
 for (int i = 0; i < 10; i++) {
     if (i == 5) {
-        break;  // Thoát khi i = 5
+        break;  // Gặp 5 → thoát luôn, không chạy 6, 7, 8, 9
     }
     System.out.println(i);
 }
-// Output: 0, 1, 2, 3, 4
+// Kết quả: 0, 1, 2, 3, 4
 
-// continue - bỏ qua iteration hiện tại
+// continue = "BỎ QUA" vòng hiện tại, nhảy sang vòng tiếp theo
 for (int i = 0; i < 10; i++) {
     if (i % 2 == 0) {
-        continue;  // Bỏ qua số chẵn
+        continue;  // Số chẵn → bỏ qua, không in
     }
     System.out.println(i);
 }
-// Output: 1, 3, 5, 7, 9
-
-// Labeled break/continue - cho nested loops
-outer:
-for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-        if (i == 1 && j == 1) {
-            break outer;  // Thoát cả 2 vòng lặp
-        }
-        System.out.println("i=" + i + ", j=" + j);
-    }
-}
+// Kết quả: 1, 3, 5, 7, 9 (chỉ in số lẻ)
 ```
+
+> 💡 **Mẹo nhớ**: `break` = đập vỡ vòng lặp (thoát). `continue` = tiếp tục sang vòng kế.
 
 ---
 
 ## 4. Arrays (Mảng)
 
-### 4.1. Khai báo và khởi tạo
+### Tại sao cần mảng?
 
-```java
-// Cách 1: Khai báo rồi khởi tạo
-int[] numbers;
-numbers = new int[5];  // Mảng 5 phần tử, default = 0
+Nếu cần lưu điểm của 100 học sinh, bạn sẽ tạo 100 biến riêng lẻ? Không! Mảng = **"dãy hộp"** có đánh số thứ tự, chứa cùng kiểu dữ liệu.
 
-// Cách 2: Khai báo và khởi tạo
-int[] numbers2 = new int[5];
-
-// Cách 3: Khởi tạo với giá trị
-int[] numbers3 = {1, 2, 3, 4, 5};
-
-// Cách 4: Tường minh
-int[] numbers4 = new int[]{1, 2, 3, 4, 5};
-
-// Default values
-int[] intArr = new int[3];      // [0, 0, 0]
-double[] doubleArr = new double[3];  // [0.0, 0.0, 0.0]
-boolean[] boolArr = new boolean[3];  // [false, false, false]
-String[] strArr = new String[3];     // [null, null, null]
+```
+Mảng diem[] gồm 5 phần tử:
+┌──────┬──────┬──────┬──────┬──────┐
+│  8   │  9   │  7   │  10  │  6   │
+├──────┼──────┼──────┼──────┼──────┤
+│ [0]  │ [1]  │ [2]  │ [3]  │ [4]  │  ← Index (chỉ số) bắt đầu từ 0!
+└──────┴──────┴──────┴──────┴──────┘
 ```
 
-### 4.2. Truy cập và modify
+### 4.1. Khai báo và khởi tạo mảng
 
 ```java
-int[] numbers = {10, 20, 30, 40, 50};
+// Cách 1: Tạo mảng rỗng (chưa có giá trị)
+int[] diem = new int[5];  // Mảng 5 ô, mỗi ô mặc định = 0
 
-// Truy cập phần tử (index từ 0)
-System.out.println(numbers[0]);  // 10
-System.out.println(numbers[2]);  // 30
-System.out.println(numbers[4]);  // 50
+// Cách 2: Tạo mảng với giá trị sẵn
+int[] diem2 = {8, 9, 7, 10, 6};  // 5 phần tử, có giá trị luôn
 
-// Modify phần tử
-numbers[1] = 25;
-System.out.println(numbers[1]);  // 25
-
-// Độ dài mảng
-System.out.println(numbers.length);  // 5
-
-// Lỗi ArrayIndexOutOfBoundsException
-// System.out.println(numbers[5]);  // Error!
-// System.out.println(numbers[-1]); // Error!
+// Cách 3: Tạo tường minh hơn
+int[] diem3 = new int[]{8, 9, 7, 10, 6};
 ```
+
+**Giá trị mặc định khi tạo mảng rỗng:**
+
+| Kiểu | Giá trị mặc định |
+|------|-----------------|
+| `int[]` | 0 |
+| `double[]` | 0.0 |
+| `boolean[]` | false |
+| `String[]` | null (chưa có gì) |
+
+### 4.2. Truy cập và thay đổi phần tử
+
+```java
+int[] diem = {8, 9, 7, 10, 6};
+
+// Đọc phần tử (index bắt đầu từ 0!)
+System.out.println(diem[0]);  // 8  — phần tử đầu tiên
+System.out.println(diem[2]);  // 7  — phần tử thứ 3
+System.out.println(diem[4]);  // 6  — phần tử cuối cùng
+
+// Thay đổi phần tử
+diem[1] = 10;  // Sửa phần tử thứ 2 từ 9 → 10
+
+// Lấy kích thước mảng
+System.out.println(diem.length);  // 5
+
+// ⚠️ Truy cập ngoài phạm vi → LỖI RUNTIME!
+// System.out.println(diem[5]);   // ❌ ArrayIndexOutOfBoundsException!
+// System.out.println(diem[-1]);  // ❌ Lỗi!
+```
+
+> 🔥 **Lỗi phổ biến nhất với mảng**: `ArrayIndexOutOfBoundsException` — truy cập index không tồn tại. Mảng 5 phần tử → index hợp lệ là 0, 1, 2, 3, 4. Index 5 → lỗi!
 
 ### 4.3. Duyệt mảng
 
 ```java
-int[] numbers = {10, 20, 30, 40, 50};
+int[] diem = {8, 9, 7, 10, 6};
 
-// Cách 1: for loop
-for (int i = 0; i < numbers.length; i++) {
-    System.out.println("Index " + i + ": " + numbers[i]);
+// Cách 1: for thường (khi cần index)
+for (int i = 0; i < diem.length; i++) {
+    System.out.println("Học sinh " + (i + 1) + ": " + diem[i]);
 }
 
-// Cách 2: for-each
-for (int num : numbers) {
-    System.out.println(num);
-}
-
-// Cách 3: while
-int i = 0;
-while (i < numbers.length) {
-    System.out.println(numbers[i]);
-    i++;
+// Cách 2: for-each (khi chỉ cần giá trị, gọn hơn)
+for (int d : diem) {
+    System.out.println("Điểm: " + d);
 }
 ```
 
-### 4.4. Mảng 2 chiều
+### 4.4. Mảng 2 chiều — "bảng" có hàng và cột
+
+> 💡 **Ví dụ đời thường**: Bảng điểm lớp học — hàng = học sinh, cột = môn học.
 
 ```java
-// Khai báo mảng 2D
-int[][] matrix = new int[3][4];  // 3 hàng, 4 cột
-
-// Khởi tạo với giá trị
-int[][] matrix2 = {
-    {1, 2, 3},
-    {4, 5, 6},
-    {7, 8, 9}
+// Tạo bảng 3 hàng × 3 cột
+int[][] bangDiem = {
+    {8, 9, 7},    // Hàng 0: học sinh 1
+    {6, 8, 9},    // Hàng 1: học sinh 2
+    {10, 7, 8}    // Hàng 2: học sinh 3
 };
 
-// Truy cập
-System.out.println(matrix2[0][0]);  // 1
-System.out.println(matrix2[1][2]);  // 6
+// Truy cập: bangDiem[hàng][cột]
+System.out.println(bangDiem[0][0]);  // 8  (HS1, Môn 1)
+System.out.println(bangDiem[1][2]);  // 9  (HS2, Môn 3)
 
-// Duyệt mảng 2D
-for (int row = 0; row < matrix2.length; row++) {
-    for (int col = 0; col < matrix2[row].length; col++) {
-        System.out.print(matrix2[row][col] + " ");
+// Duyệt mảng 2 chiều
+for (int hang = 0; hang < bangDiem.length; hang++) {
+    for (int cot = 0; cot < bangDiem[hang].length; cot++) {
+        System.out.print(bangDiem[hang][cot] + "\t");
     }
-    System.out.println();
+    System.out.println();  // Xuống dòng sau mỗi hàng
 }
-
-// Jagged array (mảng không đều)
-int[][] jagged = {
-    {1, 2},
-    {3, 4, 5},
-    {6, 7, 8, 9}
-};
+// Kết quả:
+// 8    9    7
+// 6    8    9
+// 10   7    8
 ```
 
-### 4.5. Array utilities
+### 4.5. Arrays utilities — công cụ xử lý mảng
 
 ```java
-import java.util.Arrays;
+import java.util.Arrays;  // Phải import!
 
-int[] numbers = {5, 2, 8, 1, 9};
+int[] so = {5, 2, 8, 1, 9};
 
-// In mảng
-System.out.println(Arrays.toString(numbers));  // [5, 2, 8, 1, 9]
+// In mảng đẹp (thay vì in địa chỉ bộ nhớ)
+System.out.println(Arrays.toString(so));  // [5, 2, 8, 1, 9]
 
-// Sắp xếp
-Arrays.sort(numbers);
-System.out.println(Arrays.toString(numbers));  // [1, 2, 5, 8, 9]
+// Sắp xếp tăng dần
+Arrays.sort(so);
+System.out.println(Arrays.toString(so));  // [1, 2, 5, 8, 9]
 
-// Tìm kiếm (mảng phải được sort)
-int index = Arrays.binarySearch(numbers, 5);
-System.out.println("Found at index: " + index);  // 2
+// Tìm kiếm (mảng PHẢI được sort trước!)
+int viTri = Arrays.binarySearch(so, 5);
+System.out.println("Số 5 ở vị trí: " + viTri);  // 2
 
-// Fill
+// Điền cùng 1 giá trị
 int[] arr = new int[5];
 Arrays.fill(arr, 10);
 System.out.println(Arrays.toString(arr));  // [10, 10, 10, 10, 10]
 
-// Copy
-int[] copy = Arrays.copyOf(numbers, 3);  // Copy 3 phần tử đầu
-int[] rangeCopy = Arrays.copyOfRange(numbers, 1, 4);  // Copy index 1-3
+// Copy mảng
+int[] banSao = Arrays.copyOf(so, 3);  // Copy 3 phần tử đầu
+System.out.println(Arrays.toString(banSao));  // [1, 2, 5]
 
-// So sánh
+// So sánh 2 mảng
 int[] a = {1, 2, 3};
 int[] b = {1, 2, 3};
-System.out.println(Arrays.equals(a, b));  // true
+System.out.println(a == b);              // false (khác địa chỉ)
+System.out.println(Arrays.equals(a, b)); // true  (cùng nội dung)
 ```
+
+> ⚠️ **Không dùng `==` để so sánh mảng!** Giống String, phải dùng `Arrays.equals()`.
 
 ---
 
-## 5. Bài tập thực hành
+## 5. Tóm tắt cuối ngày
+
+| Khái niệm | Giải thích | Ví dụ |
+|-----------|-----------|-------|
+| Arithmetic operators | Phép tính: +, -, *, /, % | `10 % 3` → 1 |
+| `==` vs `.equals()` | `==` so sánh địa chỉ, `.equals()` so sánh nội dung | String luôn dùng `.equals()` |
+| `&&`, `\|\|`, `!` | AND, OR, NOT logic | `true && false` → false |
+| `a++` vs `++a` | Dùng trước tăng sau / Tăng trước dùng sau | Câu hỏi phỏng vấn kinh điển |
+| if / else if / else | Ra quyết định theo điều kiện | Xếp loại điểm |
+| switch | Kiểm tra nhiều giá trị cụ thể | Menu, ngày trong tuần |
+| for | Lặp biết trước số lần | `for (int i = 0; i < 10; i++)` |
+| while | Lặp chưa biết số lần, kiểm tra trước | Đọc input đến "quit" |
+| do-while | Lặp ít nhất 1 lần | Menu chương trình |
+| for-each | Duyệt mảng gọn | `for (int x : arr)` |
+| break / continue | Thoát vòng lặp / Bỏ qua vòng hiện tại | |
+| Array | Dãy phần tử cùng kiểu, index từ 0 | `int[] a = {1,2,3};` |
+
+---
+
+## 6. Bài tập thực hành
 
 ### Bài 1: Máy tính đơn giản
-Viết chương trình máy tính với các phép: +, -, *, /, %
-- Nhập 2 số và phép tính
-- Sử dụng switch để xử lý
-- Xử lý chia cho 0
+Viết chương trình máy tính:
+- Nhập 2 số và phép tính (+, -, *, /, %)
+- Dùng switch để xử lý
+- Xử lý trường hợp chia cho 0
 
 ```
-Enter first number: 10
-Enter operator (+, -, *, /, %): /
-Enter second number: 3
-Result: 10 / 3 = 3.33
+Nhập số thứ nhất: 10
+Nhập phép tính (+, -, *, /, %): /
+Nhập số thứ hai: 3
+Kết quả: 10 / 3 = 3.33
 ```
 
 ---
 
 ### Bài 2: Kiểm tra số nguyên tố
-Viết hàm kiểm tra số nguyên tố và in các số nguyên tố từ 1 đến n.
+Viết chương trình kiểm tra số nguyên tố (số chỉ chia hết cho 1 và chính nó) và in các số nguyên tố từ 1 đến n.
+
+> 💡 **Gợi ý**: Số nguyên tố là số lớn hơn 1, không chia hết cho bất kỳ số nào từ 2 đến √n.
 
 ```
-Enter n: 20
-Prime numbers from 1 to 20:
+Nhập n: 20
+Số nguyên tố từ 1 đến 20:
 2 3 5 7 11 13 17 19
-Total: 8 primes
+Tổng: 8 số nguyên tố
 ```
 
 ---
 
 ### Bài 3: Bảng cửu chương
-In bảng cửu chương từ 2 đến 9 theo format đẹp.
-
-```
-=== Multiplication Table ===
-
-   |  2    3    4    5    6    7    8    9
----+----------------------------------------
- 1 |  2    3    4    5    6    7    8    9
- 2 |  4    6    8   10   12   14   16   18
-...
-10 | 20   30   40   50   60   70   80   90
-```
+In bảng cửu chương từ 2 đến 9.
 
 ---
 
 ### Bài 4: Tam giác sao
-Vẽ các loại tam giác sao với n dòng.
+Vẽ tam giác sao với n dòng:
 
 ```
-Enter n: 5
-Enter type (1-4): 1
+Nhập n: 5
 
-Type 1 (Right triangle):
 *
 **
 ***
 ****
 *****
-
-Type 2 (Inverted):
-*****
-****
-***
-**
-*
-
-Type 3 (Pyramid):
-    *
-   ***
-  *****
- *******
-*********
-
-Type 4 (Diamond):
-    *
-   ***
-  *****
- *******
-*********
- *******
-  *****
-   ***
-    *
 ```
+
+Thử thêm: tam giác ngược, kim tự tháp, hình thoi.
 
 ---
 
 ### Bài 5: Thao tác mảng
-Viết chương trình với các chức năng:
+Viết chương trình:
 1. Nhập mảng n phần tử
-2. In mảng
-3. Tìm min, max
-4. Tính tổng, trung bình
-5. Đảo ngược mảng
-6. Sắp xếp mảng (không dùng Arrays.sort)
-
-```
-Enter array size: 5
-Enter 5 elements:
-Element 0: 3
-Element 1: 1
-Element 2: 4
-Element 3: 1
-Element 4: 5
-
-Array: [3, 1, 4, 1, 5]
-Min: 1
-Max: 5
-Sum: 14
-Average: 2.8
-Reversed: [5, 1, 4, 1, 3]
-Sorted: [1, 1, 3, 4, 5]
-```
+2. Tìm min, max
+3. Tính tổng, trung bình
+4. Đảo ngược mảng
+5. Sắp xếp (không dùng `Arrays.sort`, tự viết)
 
 ---
 
 ### Bài 6: FizzBuzz
-In các số từ 1 đến n:
-- Chia hết cho 3: in "Fizz"
-- Chia hết cho 5: in "Buzz"
-- Chia hết cho cả 3 và 5: in "FizzBuzz"
-- Còn lại: in số đó
+In số từ 1 đến n:
+- Chia hết cho 3 → "Fizz"
+- Chia hết cho 5 → "Buzz"
+- Chia hết cho cả 3 và 5 → "FizzBuzz"
+- Còn lại → in số
+
+> 🔥 Đây là bài phỏng vấn kinh điển!
 
 ---
 
-### Bài 7: Guess the Number
-Tạo game đoán số:
-- Random số từ 1-100
-- Người chơi đoán, hint "Too high" hoặc "Too low"
-- Đếm số lần đoán
+### Bài 7: Đoán số
+Tạo game đoán số random 1-100, gợi ý "Cao quá" / "Thấp quá", đếm số lần đoán.
 
 ---
 
-## 6. Đáp án tham khảo
+## 7. Đáp án tham khảo
+
+> ⚠️ **Tự làm trước ít nhất 15 phút trước khi xem đáp án!**
 
 <details>
-<summary>Bài 1: Máy tính</summary>
+<summary>Bài 1: Máy tính (click để mở)</summary>
 
 ```java
 import java.util.Scanner;
 
-public class Calculator {
+public class MayTinh {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Enter first number: ");
-        double num1 = scanner.nextDouble();
+        System.out.print("Nhập số thứ nhất: ");
+        double so1 = scanner.nextDouble();
 
-        System.out.print("Enter operator (+, -, *, /, %): ");
-        char operator = scanner.next().charAt(0);
+        System.out.print("Nhập phép tính (+, -, *, /, %): ");
+        char phepTinh = scanner.next().charAt(0);  // Đọc 1 ký tự đầu tiên
 
-        System.out.print("Enter second number: ");
-        double num2 = scanner.nextDouble();
+        System.out.print("Nhập số thứ hai: ");
+        double so2 = scanner.nextDouble();
 
-        double result;
-        switch (operator) {
+        double ketQua;
+        switch (phepTinh) {
             case '+':
-                result = num1 + num2;
+                ketQua = so1 + so2;
                 break;
             case '-':
-                result = num1 - num2;
+                ketQua = so1 - so2;
                 break;
             case '*':
-                result = num1 * num2;
+                ketQua = so1 * so2;
                 break;
             case '/':
-                if (num2 == 0) {
-                    System.out.println("Error: Division by zero!");
-                    return;
+                if (so2 == 0) {
+                    System.out.println("Lỗi: Không thể chia cho 0!");
+                    return;  // Thoát chương trình
                 }
-                result = num1 / num2;
+                ketQua = so1 / so2;
                 break;
             case '%':
-                if (num2 == 0) {
-                    System.out.println("Error: Division by zero!");
+                if (so2 == 0) {
+                    System.out.println("Lỗi: Không thể chia cho 0!");
                     return;
                 }
-                result = num1 % num2;
+                ketQua = so1 % so2;
                 break;
             default:
-                System.out.println("Invalid operator!");
+                System.out.println("Phép tính không hợp lệ!");
                 return;
         }
 
-        System.out.printf("Result: %.2f %c %.2f = %.2f%n", num1, operator, num2, result);
+        System.out.printf("Kết quả: %.2f %c %.2f = %.2f%n", so1, phepTinh, so2, ketQua);
         scanner.close();
     }
 }
@@ -752,40 +779,42 @@ public class Calculator {
 </details>
 
 <details>
-<summary>Bài 2: Số nguyên tố</summary>
+<summary>Bài 2: Số nguyên tố (click để mở)</summary>
 
 ```java
 import java.util.Scanner;
 
-public class PrimeNumbers {
+public class SoNguyenTo {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Enter n: ");
+        System.out.print("Nhập n: ");
         int n = scanner.nextInt();
 
-        System.out.println("Prime numbers from 1 to " + n + ":");
+        System.out.println("Số nguyên tố từ 1 đến " + n + ":");
 
-        int count = 0;
-        for (int num = 2; num <= n; num++) {
-            if (isPrime(num)) {
-                System.out.print(num + " ");
-                count++;
+        int dem = 0;
+        for (int so = 2; so <= n; so++) {
+            if (laSoNguyenTo(so)) {
+                System.out.print(so + " ");
+                dem++;
             }
         }
 
-        System.out.println("\nTotal: " + count + " primes");
+        System.out.println("\nTổng: " + dem + " số nguyên tố");
         scanner.close();
     }
 
-    public static boolean isPrime(int num) {
-        if (num < 2) return false;
-        if (num == 2) return true;
-        if (num % 2 == 0) return false;
+    // Hàm kiểm tra số nguyên tố
+    public static boolean laSoNguyenTo(int so) {
+        if (so < 2) return false;      // 0 và 1 không phải số nguyên tố
+        if (so == 2) return true;       // 2 là số nguyên tố duy nhất là số chẵn
+        if (so % 2 == 0) return false;  // Số chẵn > 2 không phải nguyên tố
 
-        for (int i = 3; i <= Math.sqrt(num); i += 2) {
-            if (num % i == 0) {
-                return false;
+        // Chỉ cần kiểm tra đến căn bậc 2 của so
+        for (int i = 3; i <= Math.sqrt(so); i += 2) {
+            if (so % i == 0) {
+                return false;  // Chia hết → không phải nguyên tố
             }
         }
         return true;
@@ -795,69 +824,59 @@ public class PrimeNumbers {
 </details>
 
 <details>
-<summary>Bài 4: Tam giác sao (Pyramid)</summary>
+<summary>Bài 6: FizzBuzz (click để mở)</summary>
 
 ```java
-import java.util.Scanner;
-
-public class StarPatterns {
+public class FizzBuzz {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Enter n: ");
-        int n = scanner.nextInt();
-
-        // Type 3: Pyramid
-        System.out.println("Pyramid:");
-        for (int i = 1; i <= n; i++) {
-            // In spaces
-            for (int j = 0; j < n - i; j++) {
-                System.out.print(" ");
+        for (int i = 1; i <= 100; i++) {
+            if (i % 3 == 0 && i % 5 == 0) {
+                System.out.println("FizzBuzz");  // Chia hết cả 3 VÀ 5 → kiểm tra TRƯỚC!
+            } else if (i % 3 == 0) {
+                System.out.println("Fizz");
+            } else if (i % 5 == 0) {
+                System.out.println("Buzz");
+            } else {
+                System.out.println(i);
             }
-            // In stars
-            for (int k = 0; k < 2 * i - 1; k++) {
-                System.out.print("*");
-            }
-            System.out.println();
         }
-
-        scanner.close();
+        // ⚠️ THỨ TỰ QUAN TRỌNG: phải kiểm tra "cả 3 và 5" TRƯỚC "chỉ 3" và "chỉ 5"!
     }
 }
 ```
 </details>
 
 <details>
-<summary>Bài 7: Guess the Number</summary>
+<summary>Bài 7: Đoán số (click để mở)</summary>
 
 ```java
 import java.util.Random;
 import java.util.Scanner;
 
-public class GuessNumber {
+public class DoanSo {
     public static void main(String[] args) {
         Random random = new Random();
         Scanner scanner = new Scanner(System.in);
 
-        int secretNumber = random.nextInt(100) + 1;  // 1-100
-        int guess;
-        int attempts = 0;
+        int soBiMat = random.nextInt(100) + 1;  // Random từ 1 đến 100
+        int doanSo;
+        int soLanDoan = 0;
 
-        System.out.println("I'm thinking of a number between 1 and 100.");
+        System.out.println("Tôi đang nghĩ 1 số từ 1 đến 100. Hãy đoán thử!");
 
         do {
-            System.out.print("Your guess: ");
-            guess = scanner.nextInt();
-            attempts++;
+            System.out.print("Bạn đoán: ");
+            doanSo = scanner.nextInt();
+            soLanDoan++;
 
-            if (guess < secretNumber) {
-                System.out.println("Too low!");
-            } else if (guess > secretNumber) {
-                System.out.println("Too high!");
+            if (doanSo < soBiMat) {
+                System.out.println("Thấp quá! ⬆️");
+            } else if (doanSo > soBiMat) {
+                System.out.println("Cao quá! ⬇️");
             } else {
-                System.out.println("Congratulations! You got it in " + attempts + " attempts!");
+                System.out.println("Chính xác! Bạn đoán đúng sau " + soLanDoan + " lần!");
             }
-        } while (guess != secretNumber);
+        } while (doanSo != soBiMat);
 
         scanner.close();
     }

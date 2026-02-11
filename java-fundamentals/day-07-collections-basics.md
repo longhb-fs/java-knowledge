@@ -1,727 +1,1005 @@
-# Day 7: Collections Basics
+# Day 7: Collections Basics (Bộ Sưu Tập — Cấu Trúc Dữ Liệu)
 
-## Mục tiêu
-- Hiểu Collections Framework
-- List: ArrayList, LinkedList
-- Set: HashSet, TreeSet, LinkedHashSet
-- Map: HashMap, TreeMap, LinkedHashMap
-- Iteration và common operations
+## Mục tiêu hôm nay
 
----
-
-## 1. Collections Framework Overview
-
-```
-Collection (interface)
-├── List (interface) - ordered, allows duplicates
-│   ├── ArrayList
-│   ├── LinkedList
-│   └── Vector (legacy)
-│
-├── Set (interface) - no duplicates
-│   ├── HashSet
-│   ├── LinkedHashSet
-│   └── TreeSet (sorted)
-│
-└── Queue (interface)
-    ├── PriorityQueue
-    └── Deque
-        └── ArrayDeque
-
-Map (interface) - key-value pairs
-├── HashMap
-├── LinkedHashMap
-├── TreeMap (sorted)
-└── Hashtable (legacy)
-```
+Sau khi học xong Day 7, bạn sẽ:
+- Hiểu **Collections Framework** (khung bộ sưu tập) là gì và tại sao cần
+- Sử dụng **List** (danh sách): ArrayList, LinkedList
+- Sử dụng **Set** (tập hợp — không trùng lặp): HashSet, TreeSet, LinkedHashSet
+- Sử dụng **Map** (bản đồ key-value): HashMap, TreeMap, LinkedHashMap
+- Biết cách **duyệt** (iterate) qua các collection
+- Biết cách **sắp xếp** (sort) với Comparable và Comparator
 
 ---
 
-## 2. List Interface
+## Tại sao cần học Collections?
 
-### 2.1. ArrayList
+### Ví dụ đời thường
+
+Bạn quản lý một danh sách học sinh. Bạn cần:
+- **Lưu danh sách** tên học sinh → Dùng **List** (có thứ tự, cho phép trùng tên)
+- **Lưu danh sách mã học sinh** → Dùng **Set** (không cho phép trùng mã)
+- **Tra cứu điểm theo tên** → Dùng **Map** (key = tên, value = điểm)
+
+Nếu chỉ dùng **mảng (array)** thì:
+- ❌ Kích thước cố định — không thể thêm/xóa phần tử linh hoạt
+- ❌ Không có sẵn method tìm kiếm, sắp xếp, xóa trùng
+- ❌ Không có kiểu "key-value" để tra cứu nhanh
+
+**Collections** giải quyết TẤT CẢ vấn đề trên!
+
+```
+Array (Mảng):
+  ┌───┬───┬───┬───┬───┐
+  │ A │ B │ C │ ? │ ? │  ← Kích thước CỐ ĐỊNH = 5
+  └───┴───┴───┴───┴───┘    Muốn thêm phần tử thứ 6? KHÔNG ĐƯỢC!
+
+ArrayList (Collection):
+  ┌───┬───┬───┐
+  │ A │ B │ C │  ← Kích thước TỰ ĐỘNG tăng
+  └───┴───┴───┘    Thêm D? OK! → [A, B, C, D]
+                   Thêm E? OK! → [A, B, C, D, E]
+```
+
+---
+
+## 1. Collections Framework Overview (Tổng quan)
+
+### Sơ đồ phân cấp
+
+```
+Collection (interface — gốc)
+│   → "Một nhóm các phần tử"
+│
+├── List (interface) — Danh sách CÓ THỨ TỰ, CHO PHÉP trùng lặp
+│   │   → Giống "danh sách học sinh" (có số thứ tự, cho phép trùng tên)
+│   │
+│   ├── ArrayList    → Mảng tự giãn nở (dùng NHIỀU NHẤT, ~90%)
+│   ├── LinkedList   → Danh sách liên kết (thêm/xóa đầu-cuối nhanh)
+│   └── Vector       → Giống ArrayList + thread-safe (LEGACY, ít dùng)
+│
+├── Set (interface) — Tập hợp KHÔNG trùng lặp
+│   │   → Giống "danh sách mã số" (mỗi mã chỉ xuất hiện 1 lần)
+│   │
+│   ├── HashSet        → Nhanh nhất, KHÔNG giữ thứ tự
+│   ├── LinkedHashSet  → Giữ thứ tự thêm vào
+│   └── TreeSet        → TỰ ĐỘNG sắp xếp
+│
+└── Queue (interface) — Hàng đợi (FIFO: vào trước ra trước)
+    │   → Giống "xếp hàng mua vé" (ai đến trước được phục vụ trước)
+    │
+    ├── PriorityQueue  → Hàng đợi ưu tiên (ưu tiên cao ra trước)
+    └── Deque          → Hàng đợi 2 đầu (thêm/xóa ở cả 2 đầu)
+        └── ArrayDeque → Triển khai nhanh nhất của Deque
+
+Map (interface) — Bản đồ KEY-VALUE (KHÔNG thuộc Collection!)
+│   → Giống "từ điển" (tra từ = key → ra nghĩa = value)
+│
+├── HashMap        → Nhanh nhất, KHÔNG giữ thứ tự
+├── LinkedHashMap  → Giữ thứ tự thêm vào
+├── TreeMap        → TỰ ĐỘNG sắp xếp theo key
+└── Hashtable      → Giống HashMap + thread-safe (LEGACY, ít dùng)
+```
+
+### Bảng so sánh nhanh — Chọn cái nào?
+
+| Cần gì? | Dùng gì? | Ví dụ |
+|---------|----------|-------|
+| Danh sách có thứ tự, truy cập theo index | **ArrayList** | Danh sách sản phẩm |
+| Thêm/xóa đầu-cuối nhiều | **LinkedList** | Hàng đợi tin nhắn |
+| Loại bỏ trùng lặp, không cần thứ tự | **HashSet** | Tập hợp email unique |
+| Loại bỏ trùng lặp, giữ thứ tự thêm | **LinkedHashSet** | Lịch sử tìm kiếm |
+| Loại bỏ trùng lặp, tự sắp xếp | **TreeSet** | Bảng xếp hạng |
+| Tra cứu theo key nhanh | **HashMap** | Config settings |
+| Tra cứu theo key, giữ thứ tự thêm | **LinkedHashMap** | Cache LRU |
+| Tra cứu theo key, sắp xếp | **TreeMap** | Từ điển A-Z |
+
+---
+
+## 2. List Interface (Danh sách)
+
+### Tại sao cần List?
+
+List giống như **danh sách** trong đời thường:
+- Có **thứ tự** (phần tử 1, 2, 3...)
+- Cho phép **trùng lặp** (2 học sinh cùng tên cũng OK)
+- Truy cập bằng **index** (vị trí)
+
+### 2.1. ArrayList (Mảng tự giãn nở — Dùng nhiều nhất!)
+
+ArrayList là implementation phổ biến nhất của List. Bên trong nó là một **mảng** (array), nhưng tự động **tăng kích thước** khi cần.
 
 ```java
 import java.util.ArrayList;
 import java.util.List;
 
-// Tạo ArrayList
-List<String> fruits = new ArrayList<>();
+public class ArrayListDemo {
+    public static void main(String[] args) {
 
-// Thêm phần tử
-fruits.add("Apple");
-fruits.add("Banana");
-fruits.add("Cherry");
-fruits.add(1, "Blueberry");  // Thêm vào index 1
+        // ===== TẠO ArrayList =====
+        // List<String> = danh sách chứa String
+        // <String> gọi là Generics — chỉ định kiểu dữ liệu
+        List<String> fruits = new ArrayList<>();
 
-// Truy cập
-String first = fruits.get(0);  // "Apple"
-int size = fruits.size();      // 4
+        // ===== THÊM phần tử =====
+        fruits.add("Táo");           // Thêm vào CUỐI → [Táo]
+        fruits.add("Chuối");         // Thêm vào CUỐI → [Táo, Chuối]
+        fruits.add("Cam");           // Thêm vào CUỐI → [Táo, Chuối, Cam]
+        fruits.add(1, "Nho");        // Thêm vào INDEX 1 → [Táo, Nho, Chuối, Cam]
+        //                                                    0    1     2      3
 
-// Sửa đổi
-fruits.set(0, "Avocado");  // Thay thế tại index 0
+        // ===== TRUY CẬP phần tử =====
+        String first = fruits.get(0);    // "Táo" (index 0 = đầu tiên)
+        String second = fruits.get(1);   // "Nho" (index 1)
+        int size = fruits.size();        // 4 (số phần tử)
 
-// Xóa
-fruits.remove(0);           // Xóa theo index
-fruits.remove("Banana");    // Xóa theo giá trị
+        // ===== SỬA phần tử =====
+        fruits.set(0, "Xoài");  // Thay index 0: "Táo" → "Xoài"
+        // Giờ: [Xoài, Nho, Chuối, Cam]
 
-// Kiểm tra
-boolean has = fruits.contains("Cherry");  // true
-int index = fruits.indexOf("Cherry");     // Vị trí hoặc -1
+        // ===== XÓA phần tử =====
+        fruits.remove(0);          // Xóa theo INDEX → xóa "Xoài"
+        fruits.remove("Chuối");    // Xóa theo GIÁ TRỊ → xóa "Chuối"
+        // Giờ: [Nho, Cam]
 
-// Clear
-fruits.clear();  // Xóa tất cả
-boolean empty = fruits.isEmpty();  // true
+        // ===== KIỂM TRA =====
+        boolean hasCam = fruits.contains("Cam");  // true (có "Cam" trong list)
+        int index = fruits.indexOf("Cam");         // 1 (vị trí của "Cam")
+        int notFound = fruits.indexOf("Dưa");      // -1 (KHÔNG TÌM THẤY)
+
+        // ===== XÓA TẤT CẢ =====
+        fruits.clear();                   // Xóa hết → []
+        boolean empty = fruits.isEmpty(); // true (list rỗng)
+
+        // ===== IN TOÀN BỘ LIST =====
+        System.out.println(fruits);  // [] (ArrayList tự có toString)
+    }
+}
 ```
 
-### 2.2. LinkedList
+### 2.2. LinkedList (Danh sách liên kết)
+
+LinkedList hoạt động khác ArrayList: mỗi phần tử là một **node** (nút) trỏ đến node tiếp theo, giống **chuỗi xích**.
+
+```
+ArrayList (mảng liên tục trong bộ nhớ):
+  ┌───┬───┬───┬───┐
+  │ A │ B │ C │ D │  ← Các phần tử NẰM CẠN NHAU
+  └───┴───┴───┴───┘
+
+LinkedList (các node trỏ đến nhau):
+  ┌───┐    ┌───┐    ┌───┐    ┌───┐
+  │ A │───→│ B │───→│ C │───→│ D │  ← Mỗi node GIỮ LINK đến node tiếp
+  └───┘    └───┘    └───┘    └───┘
+```
 
 ```java
 import java.util.LinkedList;
 
-LinkedList<String> list = new LinkedList<>();
+public class LinkedListDemo {
+    public static void main(String[] args) {
+        LinkedList<String> list = new LinkedList<>();
 
-// Thêm vào đầu/cuối
-list.addFirst("First");
-list.addLast("Last");
-list.add("Middle");  // addLast by default
+        // Thêm vào ĐẦU và CUỐI (đặc biệt của LinkedList)
+        list.addFirst("Đầu tiên");  // Thêm vào đầu
+        list.addLast("Cuối cùng");  // Thêm vào cuối
+        list.add("Giữa");           // addLast() mặc định
 
-// Lấy đầu/cuối
-String first = list.getFirst();
-String last = list.getLast();
+        // Lấy phần tử ĐẦU và CUỐI
+        String first = list.getFirst();  // "Đầu tiên"
+        String last = list.getLast();    // "Giữa"
 
-// Xóa đầu/cuối
-list.removeFirst();
-list.removeLast();
+        // Xóa ĐẦU và CUỐI
+        list.removeFirst();  // Xóa "Đầu tiên"
+        list.removeLast();   // Xóa "Giữa"
 
-// Peek (không xóa) và Poll (xóa)
-String peek = list.peek();      // Xem phần tử đầu
-String poll = list.poll();      // Lấy và xóa phần tử đầu
+        // peek() — Xem đầu tiên (KHÔNG xóa)
+        String peek = list.peek();   // "Cuối cùng" (chỉ xem, không xóa)
 
-// Có thể dùng như Stack
-list.push("New");   // addFirst
-String top = list.pop();  // removeFirst
+        // poll() — Lấy đầu tiên (CÓ xóa)
+        String poll = list.poll();   // "Cuối cùng" (lấy ra + xóa khỏi list)
+
+        // Dùng như STACK (ngăn xếp — LIFO: vào sau ra trước)
+        list.push("A");     // Thêm vào đầu (giống addFirst)
+        list.push("B");     // Thêm vào đầu → [B, A]
+        String top = list.pop();  // Lấy từ đầu → "B" (giống removeFirst)
+    }
+}
 ```
 
-### 2.3. ArrayList vs LinkedList
+### 2.3. ArrayList vs LinkedList — Khi nào dùng gì?
 
-| Feature | ArrayList | LinkedList |
-|---------|-----------|------------|
-| Access by index | O(1) ✅ | O(n) |
-| Add/Remove at end | O(1) | O(1) |
-| Add/Remove at middle | O(n) | O(1) * |
-| Memory | Less | More (nodes) |
-| Best for | Random access | Frequent insertions |
+| Tiêu chí | ArrayList | LinkedList |
+|----------|-----------|------------|
+| **Truy cập index** (get/set) | ✅ O(1) — CỰC NHANH | ❌ O(n) — Phải duyệt từ đầu |
+| **Thêm/xóa CUỐI** | ✅ O(1) | ✅ O(1) |
+| **Thêm/xóa GIỮA** | ❌ O(n) — Phải dịch chuyển | ✅ O(1)* — Chỉ đổi link |
+| **Bộ nhớ** | ✅ Ít hơn | ❌ Nhiều hơn (mỗi node chứa 2 link) |
+| **Khi nào dùng?** | **90% trường hợp** — đọc nhiều | Thêm/xóa đầu-cuối nhiều |
 
-```java
-// Khi nào dùng gì?
+💡 **Mẹo:** Nếu không biết chọn gì → **dùng ArrayList**. Nó nhanh hơn trong hầu hết trường hợp thực tế.
 
-// ArrayList - truy cập nhiều, ít insert/delete
-List<String> products = new ArrayList<>();
-products.get(100);  // O(1) - nhanh
-
-// LinkedList - thêm/xóa đầu/cuối nhiều
-LinkedList<String> queue = new LinkedList<>();
-queue.addFirst(item);  // O(1)
-queue.removeLast();    // O(1)
-```
-
-### 2.4. List Operations
+### 2.4. List Operations (Thao tác hữu ích)
 
 ```java
-List<Integer> numbers = new ArrayList<>(Arrays.asList(3, 1, 4, 1, 5, 9, 2, 6));
+import java.util.*;
 
-// Sort
-Collections.sort(numbers);  // [1, 1, 2, 3, 4, 5, 6, 9]
-numbers.sort(Comparator.reverseOrder());  // Descending
+public class ListOperations {
+    public static void main(String[] args) {
+        List<Integer> numbers = new ArrayList<>(Arrays.asList(3, 1, 4, 1, 5, 9, 2, 6));
 
-// Shuffle
-Collections.shuffle(numbers);
+        // ===== SẮP XẾP =====
+        Collections.sort(numbers);  // Tăng dần: [1, 1, 2, 3, 4, 5, 6, 9]
+        numbers.sort(Comparator.reverseOrder());  // Giảm dần: [9, 6, 5, 4, 3, 2, 1, 1]
 
-// Reverse
-Collections.reverse(numbers);
+        // ===== TRỘN NGẪU NHIÊN =====
+        Collections.shuffle(numbers);  // Xáo trộn random
 
-// Min/Max
-int min = Collections.min(numbers);
-int max = Collections.max(numbers);
+        // ===== ĐẢO NGƯỢC =====
+        Collections.reverse(numbers);  // Đảo ngược thứ tự
 
-// Binary search (list phải được sort)
-Collections.sort(numbers);
-int index = Collections.binarySearch(numbers, 5);
+        // ===== TÌM MIN/MAX =====
+        int min = Collections.min(numbers);  // Phần tử nhỏ nhất
+        int max = Collections.max(numbers);  // Phần tử lớn nhất
 
-// Sublist
-List<Integer> subList = numbers.subList(0, 3);  // View, không phải copy
+        // ===== TÌM KIẾM NHỊ PHÂN (list phải sorted trước!) =====
+        Collections.sort(numbers);
+        int index = Collections.binarySearch(numbers, 5);
+        // Trả về index nếu tìm thấy, số âm nếu không
 
-// Copy
-List<Integer> copy = new ArrayList<>(numbers);
+        // ===== CẮT DANH SÁCH CON =====
+        List<Integer> subList = numbers.subList(0, 3);
+        // ⚠️ subList là VIEW (xem), không phải bản sao!
+        // Sửa subList sẽ ảnh hưởng đến numbers gốc!
 
-// Unmodifiable list
-List<Integer> readOnly = Collections.unmodifiableList(numbers);
-// readOnly.add(10);  // UnsupportedOperationException
+        // ===== SAO CHÉP =====
+        List<Integer> copy = new ArrayList<>(numbers);  // Bản sao ĐỘC LẬP
 
-// List.of() - immutable (Java 9+)
-List<String> immutable = List.of("a", "b", "c");
+        // ===== TẠO LIST KHÔNG THỂ SỬA (Immutable) =====
+        // Cách 1: Collections.unmodifiableList (Java cũ)
+        List<Integer> readOnly = Collections.unmodifiableList(numbers);
+        // readOnly.add(10);  // UnsupportedOperationException!
+
+        // Cách 2: List.of() (Java 9+) — ngắn gọn hơn
+        List<String> immutable = List.of("a", "b", "c");
+        // immutable.add("d");  // UnsupportedOperationException!
+    }
+}
 ```
 
 ---
 
-## 3. Set Interface
+## 3. Set Interface (Tập hợp — Không trùng lặp)
 
-### 3.1. HashSet
+### Tại sao cần Set?
+
+Set giống **tập hợp** trong toán học:
+- **KHÔNG** cho phép phần tử trùng lặp
+- Thêm phần tử đã có → **bị bỏ qua** (không lỗi)
+
+### Ví dụ đời thường
+
+```
+Set giống DANH SÁCH EMAIL ĐĂNG KÝ:
+  - user@email.com  → Thêm ✅
+  - admin@email.com → Thêm ✅
+  - user@email.com  → Đã có → BỎ QUA (không thêm 2 lần)
+```
+
+### 3.1. HashSet (Nhanh nhất, không giữ thứ tự)
 
 ```java
 import java.util.HashSet;
 import java.util.Set;
 
-Set<String> fruits = new HashSet<>();
+public class HashSetDemo {
+    public static void main(String[] args) {
+        Set<String> emails = new HashSet<>();
 
-// Thêm (không có duplicates)
-fruits.add("Apple");
-fruits.add("Banana");
-fruits.add("Apple");  // Không thêm được, đã tồn tại
-System.out.println(fruits.size());  // 2
+        // ===== THÊM phần tử =====
+        emails.add("a@email.com");   // Thêm OK → true
+        emails.add("b@email.com");   // Thêm OK → true
+        emails.add("a@email.com");   // Đã có → BỎ QUA → false
+        System.out.println(emails.size());  // 2 (chỉ có 2 email unique)
 
-// Kiểm tra
-boolean has = fruits.contains("Apple");  // true
+        // ===== KIỂM TRA =====
+        boolean hasA = emails.contains("a@email.com");  // true
 
-// Xóa
-fruits.remove("Banana");
+        // ===== XÓA =====
+        emails.remove("b@email.com");  // Xóa 1 phần tử
 
-// Iteration (không có thứ tự cố định)
-for (String fruit : fruits) {
-    System.out.println(fruit);
+        // ===== DUYỆT =====
+        // ⚠️ Thứ tự KHÔNG cố định (có thể khác mỗi lần chạy!)
+        for (String email : emails) {
+            System.out.println(email);
+        }
+    }
 }
 ```
 
-### 3.2. LinkedHashSet
+### 3.2. LinkedHashSet (Giữ thứ tự thêm vào)
 
 ```java
-// Giữ thứ tự thêm vào
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+// Giống HashSet nhưng GIỮ THỨ TỰ thêm vào
 Set<String> set = new LinkedHashSet<>();
 set.add("C");
 set.add("A");
 set.add("B");
 
 for (String s : set) {
-    System.out.print(s + " ");  // C A B (thứ tự thêm)
+    System.out.print(s + " ");  // C A B (đúng thứ tự thêm vào!)
 }
+// HashSet có thể in: A B C hoặc C B A (ngẫu nhiên)
 ```
 
-### 3.3. TreeSet
+### 3.3. TreeSet (Tự động sắp xếp)
 
 ```java
 import java.util.TreeSet;
+import java.util.Set;
 
-// Tự động sort
-Set<Integer> numbers = new TreeSet<>();
-numbers.add(5);
-numbers.add(2);
-numbers.add(8);
-numbers.add(1);
+// TreeSet TỰ ĐỘNG sắp xếp phần tử
+Set<Integer> scores = new TreeSet<>();
+scores.add(85);
+scores.add(92);
+scores.add(78);
+scores.add(95);
+scores.add(88);
 
-for (int n : numbers) {
-    System.out.print(n + " ");  // 1 2 5 8 (đã sort)
+for (int score : scores) {
+    System.out.print(score + " ");  // 78 85 88 92 95 (đã sắp xếp!)
 }
 
-// TreeSet với custom Comparator
-TreeSet<String> names = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-names.add("John");
-names.add("alice");
+// TreeSet với String → sắp xếp theo bảng chữ cái
+TreeSet<String> names = new TreeSet<>();
+names.add("Charlie");
+names.add("Alice");
 names.add("Bob");
-// Sorted case-insensitively
+System.out.println(names);  // [Alice, Bob, Charlie]
 
-// Navigation methods
-TreeSet<Integer> ts = new TreeSet<>(Arrays.asList(10, 20, 30, 40, 50));
-ts.first();        // 10
-ts.last();         // 50
-ts.lower(30);      // 20 (< 30)
-ts.higher(30);     // 40 (> 30)
-ts.floor(35);      // 30 (<= 35)
-ts.ceiling(35);    // 40 (>= 35)
-ts.headSet(30);    // [10, 20] (< 30)
-ts.tailSet(30);    // [30, 40, 50] (>= 30)
+// ===== Navigation methods (method đặc biệt của TreeSet) =====
+TreeSet<Integer> ts = new TreeSet<>(Set.of(10, 20, 30, 40, 50));
+
+ts.first();        // 10 (phần tử NHỎ NHẤT)
+ts.last();         // 50 (phần tử LỚN NHẤT)
+ts.lower(30);      // 20 (phần tử LỚN NHẤT mà < 30)
+ts.higher(30);     // 40 (phần tử NHỎ NHẤT mà > 30)
+ts.floor(35);      // 30 (phần tử LỚN NHẤT mà <= 35)
+ts.ceiling(35);    // 40 (phần tử NHỎ NHẤT mà >= 35)
+ts.headSet(30);    // [10, 20] (các phần tử < 30)
+ts.tailSet(30);    // [30, 40, 50] (các phần tử >= 30)
 ```
 
-### 3.4. Set Operations
+### 3.4. So sánh 3 loại Set
+
+| Tiêu chí | HashSet | LinkedHashSet | TreeSet |
+|----------|---------|---------------|---------|
+| **Thứ tự** | ❌ Không | ✅ Thứ tự thêm | ✅ Tự sắp xếp |
+| **Tốc độ** | ✅ O(1) Nhanh nhất | ✅ O(1) | ⚠️ O(log n) Chậm hơn |
+| **null** | ✅ Cho phép 1 null | ✅ Cho phép 1 null | ❌ Không cho null |
+| **Khi nào?** | Loại trùng nhanh | Giữ thứ tự thêm | Cần tự sắp xếp |
+
+### 3.5. Set Operations (Phép toán tập hợp)
 
 ```java
-Set<Integer> set1 = new HashSet<>(Arrays.asList(1, 2, 3, 4, 5));
-Set<Integer> set2 = new HashSet<>(Arrays.asList(4, 5, 6, 7, 8));
+Set<Integer> setA = new HashSet<>(Set.of(1, 2, 3, 4, 5));
+Set<Integer> setB = new HashSet<>(Set.of(4, 5, 6, 7, 8));
 
-// Union (hợp)
-Set<Integer> union = new HashSet<>(set1);
-union.addAll(set2);  // [1, 2, 3, 4, 5, 6, 7, 8]
+// ===== HỢP (Union): A ∪ B — Tất cả phần tử của cả 2 set =====
+Set<Integer> union = new HashSet<>(setA);
+union.addAll(setB);
+// union = [1, 2, 3, 4, 5, 6, 7, 8]
 
-// Intersection (giao)
-Set<Integer> intersection = new HashSet<>(set1);
-intersection.retainAll(set2);  // [4, 5]
+// ===== GIAO (Intersection): A ∩ B — Phần tử CHUNG =====
+Set<Integer> intersection = new HashSet<>(setA);
+intersection.retainAll(setB);
+// intersection = [4, 5]
 
-// Difference (hiệu)
-Set<Integer> difference = new HashSet<>(set1);
-difference.removeAll(set2);  // [1, 2, 3]
+// ===== HIỆU (Difference): A - B — Phần tử chỉ có trong A =====
+Set<Integer> difference = new HashSet<>(setA);
+difference.removeAll(setB);
+// difference = [1, 2, 3]
+```
 
-// Symmetric difference (đối xứng)
-Set<Integer> symDiff = new HashSet<>(set1);
-symDiff.addAll(set2);
-Set<Integer> tmp = new HashSet<>(set1);
-tmp.retainAll(set2);
-symDiff.removeAll(tmp);  // [1, 2, 3, 6, 7, 8]
+**Minh họa:**
+
+```
+Set A: {1, 2, 3, 4, 5}     Set B: {4, 5, 6, 7, 8}
+
+Hợp (Union):        {1, 2, 3, 4, 5, 6, 7, 8}  ← Tất cả
+Giao (Intersection): {4, 5}                     ← Phần chung
+Hiệu (A - B):       {1, 2, 3}                  ← Chỉ có trong A
 ```
 
 ---
 
-## 4. Map Interface
+## 4. Map Interface (Bản đồ Key-Value)
 
-### 4.1. HashMap
+### Tại sao cần Map?
+
+Map giống **từ điển** hoặc **danh bạ điện thoại**:
+- **Key** (khóa) = từ cần tra / tên người
+- **Value** (giá trị) = nghĩa / số điện thoại
+- Mỗi key chỉ có **1 value** (tra 1 từ → ra 1 nghĩa)
+- Key **KHÔNG được trùng** (không có 2 từ giống nhau trong từ điển)
+
+```
+Map giống DANH BẠ ĐIỆN THOẠI:
+  ┌─────────────────┬──────────────┐
+  │ Key (Tên)       │ Value (SĐT)  │
+  ├─────────────────┼──────────────┤
+  │ "Nguyễn Văn A"  │ "0901234567" │
+  │ "Trần Thị B"    │ "0912345678" │
+  │ "Lê Văn C"      │ "0923456789" │
+  └─────────────────┴──────────────┘
+  Tra tên → ra số điện thoại (rất nhanh!)
+```
+
+### 4.1. HashMap (Nhanh nhất, dùng nhiều nhất)
 
 ```java
 import java.util.HashMap;
 import java.util.Map;
 
-Map<String, Integer> ages = new HashMap<>();
+public class HashMapDemo {
+    public static void main(String[] args) {
+        // Map<Key, Value> = Map<String, Integer>
+        // Key = tên (String), Value = tuổi (Integer)
+        Map<String, Integer> ages = new HashMap<>();
 
-// Put
-ages.put("John", 25);
-ages.put("Jane", 30);
-ages.put("Bob", 35);
-ages.put("John", 26);  // Update existing key
+        // ===== THÊM cặp key-value =====
+        ages.put("An", 25);     // Thêm An: 25 tuổi
+        ages.put("Bình", 30);   // Thêm Bình: 30 tuổi
+        ages.put("Châu", 35);   // Thêm Châu: 35 tuổi
+        ages.put("An", 26);     // Key "An" đã có → GHI ĐÈ value: 25 → 26
+        //                         ⚠️ put KHÔNG thêm key mới, mà UPDATE value!
 
-// Get
-int johnAge = ages.get("John");        // 26
-int unknownAge = ages.get("Unknown");  // null
-int safeAge = ages.getOrDefault("Unknown", 0);  // 0
+        // ===== LẤY value theo key =====
+        int anAge = ages.get("An");          // 26
+        Integer unknown = ages.get("Xyz");   // null (key không tồn tại)
+        int safe = ages.getOrDefault("Xyz", 0);  // 0 (giá trị mặc định nếu không có)
 
-// Check
-boolean hasJohn = ages.containsKey("John");    // true
-boolean has25 = ages.containsValue(25);        // false (đã update)
+        // ===== KIỂM TRA =====
+        boolean hasAn = ages.containsKey("An");     // true (có key "An")
+        boolean has25 = ages.containsValue(25);      // false (25 đã bị update thành 26)
 
-// Remove
-ages.remove("Bob");
-ages.remove("John", 26);  // Remove only if value matches
+        // ===== XÓA =====
+        ages.remove("Châu");            // Xóa key "Châu"
+        ages.remove("An", 99);          // KHÔNG xóa — vì value không khớp (26 ≠ 99)
+        ages.remove("An", 26);          // Xóa — vì value khớp (26 = 26)
 
-// Size
-int size = ages.size();
+        // ===== KÍCH THƯỚC =====
+        int size = ages.size();          // Số cặp key-value
 
-// putIfAbsent - chỉ put nếu key chưa tồn tại
-ages.putIfAbsent("Alice", 28);
+        // ===== CÁC METHOD NÂNG CAO =====
 
-// computeIfAbsent - compute value nếu key chưa tồn tại
-ages.computeIfAbsent("Charlie", key -> key.length() * 10);
+        // putIfAbsent — Chỉ thêm nếu key CHƯA CÓ
+        ages.putIfAbsent("Dung", 28);   // Thêm vì "Dung" chưa có
+        ages.putIfAbsent("Bình", 99);   // KHÔNG thêm — "Bình" đã có → giữ 30
 
-// computeIfPresent
-ages.computeIfPresent("Jane", (key, value) -> value + 1);
+        // getOrDefault — Lấy value, nếu không có trả giá trị mặc định
+        int dungAge = ages.getOrDefault("Dung", 0);  // 28
 
-// merge
-ages.merge("Jane", 1, Integer::sum);  // Cộng thêm 1
+        // merge — Gộp value nếu key đã có
+        ages.merge("Bình", 1, Integer::sum);
+        // Key "Bình" đã có (30) → gộp: 30 + 1 = 31
+        // Nếu key chưa có → đặt value = 1
+
+        System.out.println(ages);
+    }
+}
 ```
 
-### 4.2. Iteration
+### 4.2. Duyệt Map (Iteration)
+
+Map có **3 cách duyệt** — mỗi cách lấy dữ liệu khác nhau:
 
 ```java
 Map<String, Integer> map = new HashMap<>();
-map.put("A", 1);
-map.put("B", 2);
-map.put("C", 3);
+map.put("Toán", 9);
+map.put("Lý", 8);
+map.put("Hóa", 7);
 
-// Iterate keys
+// ===== Cách 1: Duyệt KEYS (chỉ lấy key) =====
+System.out.println("--- Các môn học ---");
 for (String key : map.keySet()) {
-    System.out.println(key);
+    System.out.println("Môn: " + key);
 }
 
-// Iterate values
+// ===== Cách 2: Duyệt VALUES (chỉ lấy value) =====
+System.out.println("--- Các điểm số ---");
 for (Integer value : map.values()) {
-    System.out.println(value);
+    System.out.println("Điểm: " + value);
 }
 
-// Iterate entries
+// ===== Cách 3: Duyệt ENTRIES (lấy CẢ key và value) — PHỔBIẾN NHẤT =====
+System.out.println("--- Bảng điểm ---");
 for (Map.Entry<String, Integer> entry : map.entrySet()) {
-    System.out.println(entry.getKey() + " = " + entry.getValue());
+    System.out.println(entry.getKey() + ": " + entry.getValue());
 }
+// Output:
+// Toán: 9
+// Lý: 8
+// Hóa: 7
 
-// forEach (Java 8+)
-map.forEach((key, value) -> {
-    System.out.println(key + " = " + value);
+// ===== Cách 4: forEach (Java 8+) — NGẮN GỌN NHẤT =====
+map.forEach((subject, score) -> {
+    System.out.println(subject + " = " + score);
 });
 ```
 
-### 4.3. LinkedHashMap
+### 4.3. LinkedHashMap (Giữ thứ tự thêm vào)
 
 ```java
-// Giữ thứ tự thêm vào
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+// Giống HashMap nhưng GIỮ THỨ TỰ thêm vào
 Map<String, Integer> map = new LinkedHashMap<>();
 map.put("C", 3);
 map.put("A", 1);
 map.put("B", 2);
 
-map.forEach((k, v) -> System.out.print(k + " "));  // C A B
-
-// Access order (LRU cache)
-Map<String, Integer> lruCache = new LinkedHashMap<>(16, 0.75f, true);
-lruCache.put("A", 1);
-lruCache.put("B", 2);
-lruCache.put("C", 3);
-lruCache.get("A");  // Access A
-// Order now: B C A (A moved to end)
+map.forEach((k, v) -> System.out.print(k + " "));
+// Output: C A B (đúng thứ tự thêm vào!)
+// HashMap có thể in: A B C hoặc B C A (ngẫu nhiên)
 ```
 
-### 4.4. TreeMap
+### 4.4. TreeMap (Tự động sắp xếp theo key)
 
 ```java
-// Sorted by keys
+import java.util.TreeMap;
+import java.util.Map;
+
+// TreeMap TỰ ĐỘNG sắp xếp theo KEY
 Map<String, Integer> map = new TreeMap<>();
-map.put("Charlie", 3);
-map.put("Alice", 1);
-map.put("Bob", 2);
+map.put("Châu", 3);
+map.put("An", 1);
+map.put("Bình", 2);
 
-map.forEach((k, v) -> System.out.print(k + " "));  // Alice Bob Charlie
+map.forEach((k, v) -> System.out.print(k + " "));
+// Output: An Bình Châu (sắp xếp theo key A-Z!)
 
-// Navigation methods
+// ===== Navigation methods =====
 TreeMap<Integer, String> treeMap = new TreeMap<>();
-treeMap.put(1, "One");
-treeMap.put(3, "Three");
-treeMap.put(5, "Five");
+treeMap.put(1, "Một");
+treeMap.put(3, "Ba");
+treeMap.put(5, "Năm");
 
-treeMap.firstKey();     // 1
-treeMap.lastKey();      // 5
-treeMap.lowerKey(3);    // 1
-treeMap.higherKey(3);   // 5
-treeMap.headMap(3);     // {1=One}
-treeMap.tailMap(3);     // {3=Three, 5=Five}
+treeMap.firstKey();     // 1 (key nhỏ nhất)
+treeMap.lastKey();      // 5 (key lớn nhất)
+treeMap.lowerKey(3);    // 1 (key lớn nhất < 3)
+treeMap.higherKey(3);   // 5 (key nhỏ nhất > 3)
+treeMap.headMap(3);     // {1=Một} (các entry có key < 3)
+treeMap.tailMap(3);     // {3=Ba, 5=Năm} (các entry có key >= 3)
 ```
 
-### 4.5. Map Comparison
+### 4.5. So sánh 3 loại Map
 
-| Feature | HashMap | LinkedHashMap | TreeMap |
-|---------|---------|---------------|---------|
-| Order | None | Insertion order | Sorted |
-| null keys | ✅ 1 null | ✅ 1 null | ❌ No |
-| Performance | O(1) | O(1) | O(log n) |
-| Use case | General | Order matters | Sorted keys |
+| Tiêu chí | HashMap | LinkedHashMap | TreeMap |
+|----------|---------|---------------|---------|
+| **Thứ tự** | ❌ Không | ✅ Thứ tự thêm | ✅ Sắp xếp theo key |
+| **Tốc độ** | ✅ O(1) | ✅ O(1) | ⚠️ O(log n) |
+| **null key** | ✅ 1 null | ✅ 1 null | ❌ Không |
+| **Khi nào?** | Tra cứu nhanh (90%) | Giữ thứ tự, cache | Cần sort theo key |
 
 ---
 
-## 5. Iteration Methods
+## 5. Iteration Methods (Các cách duyệt Collection)
 
-### 5.1. For-each Loop
+### 5.1. For-each Loop (Cách đơn giản nhất)
 
 ```java
-List<String> list = Arrays.asList("A", "B", "C");
+List<String> list = List.of("An", "Bình", "Châu");
 
-for (String item : list) {
-    System.out.println(item);
+// Duyệt từng phần tử
+for (String name : list) {
+    System.out.println("Xin chào " + name);
 }
 ```
 
-### 5.2. Iterator
+### 5.2. Iterator (Có thể XÓA phần tử khi đang duyệt)
 
 ```java
-List<String> list = new ArrayList<>(Arrays.asList("A", "B", "C"));
+List<String> list = new ArrayList<>(List.of("An", "Bình", "Châu", "An"));
 Iterator<String> iterator = list.iterator();
 
-while (iterator.hasNext()) {
-    String item = iterator.next();
-    if (item.equals("B")) {
-        iterator.remove();  // Safe removal during iteration
+while (iterator.hasNext()) {        // Còn phần tử tiếp theo?
+    String name = iterator.next();  // Lấy phần tử tiếp
+    if (name.equals("An")) {
+        iterator.remove();          // ✅ AN TOÀN: Xóa khi đang duyệt
     }
 }
+System.out.println(list);  // [Bình, Châu]
 ```
 
-### 5.3. ListIterator
+⚠️ **BẪY NGUY HIỂM:** Xóa phần tử trong for-each → `ConcurrentModificationException`!
 
 ```java
-List<String> list = new ArrayList<>(Arrays.asList("A", "B", "C"));
+List<String> list = new ArrayList<>(List.of("An", "Bình", "Châu"));
+
+// ❌ SAI: Xóa trong for-each → CRASH!
+for (String name : list) {
+    if (name.equals("An")) {
+        list.remove(name);  // ConcurrentModificationException!
+    }
+}
+
+// ✅ ĐÚNG: Dùng Iterator
+Iterator<String> it = list.iterator();
+while (it.hasNext()) {
+    if (it.next().equals("An")) {
+        it.remove();  // OK!
+    }
+}
+
+// ✅ ĐÚNG: Hoặc dùng removeIf (Java 8+)
+list.removeIf(name -> name.equals("An"));
+```
+
+### 5.3. ListIterator (Duyệt 2 chiều — chỉ cho List)
+
+```java
+List<String> list = new ArrayList<>(List.of("A", "B", "C"));
 ListIterator<String> li = list.listIterator();
 
-// Forward
+// Duyệt XUÔI (forward)
 while (li.hasNext()) {
-    System.out.println(li.next());
+    System.out.print(li.next() + " ");  // A B C
 }
 
-// Backward
+// Duyệt NGƯỢC (backward)
 while (li.hasPrevious()) {
-    System.out.println(li.previous());
+    System.out.print(li.previous() + " ");  // C B A
 }
 
-// Modify during iteration
+// SỬA khi đang duyệt
 li = list.listIterator();
 while (li.hasNext()) {
     String item = li.next();
-    li.set(item.toLowerCase());  // Replace current
-    if (item.equals("b")) {
-        li.add("B2");  // Add after current
-    }
+    li.set(item.toLowerCase());  // Đổi thành chữ thường
 }
+// list = [a, b, c]
 ```
 
-### 5.4. forEach Method (Java 8+)
+### 5.4. forEach Method (Java 8+ — Ngắn gọn nhất)
 
 ```java
-List<String> list = Arrays.asList("A", "B", "C");
-list.forEach(item -> System.out.println(item));
-list.forEach(System.out::println);  // Method reference
-```
+List<String> list = List.of("An", "Bình", "Châu");
 
----
+// Lambda expression
+list.forEach(name -> System.out.println("Xin chào " + name));
 
-## 6. Utility Classes
-
-### 6.1. Collections
-
-```java
-List<Integer> list = new ArrayList<>(Arrays.asList(3, 1, 4, 1, 5));
-
-// Sort
-Collections.sort(list);
-Collections.sort(list, Collections.reverseOrder());
-
-// Search
-Collections.binarySearch(list, 4);  // Requires sorted list
-
-// Shuffle
-Collections.shuffle(list);
-
-// Reverse
-Collections.reverse(list);
-
-// Swap
-Collections.swap(list, 0, 1);
-
-// Fill
-Collections.fill(list, 0);  // All elements = 0
-
-// Copy
-List<Integer> dest = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0));
-Collections.copy(dest, list);
-
-// Min/Max
-Collections.min(list);
-Collections.max(list);
-
-// Frequency
-Collections.frequency(list, 1);  // Count of 1
-
-// nCopies
-List<String> copies = Collections.nCopies(5, "A");  // [A, A, A, A, A]
-
-// Immutable
-List<String> empty = Collections.emptyList();
-List<String> singleton = Collections.singletonList("Only");
-List<String> unmodifiable = Collections.unmodifiableList(list);
-```
-
-### 6.2. Arrays
-
-```java
-int[] arr = {3, 1, 4, 1, 5};
-
-// Sort
-Arrays.sort(arr);
-
-// Binary search
-Arrays.binarySearch(arr, 4);
-
-// Fill
-Arrays.fill(arr, 0);
-
-// Copy
-int[] copy = Arrays.copyOf(arr, 10);  // Larger size
-int[] range = Arrays.copyOfRange(arr, 1, 4);
-
-// Compare
-Arrays.equals(arr, copy);
-
-// toString
-Arrays.toString(arr);  // [3, 1, 4, 1, 5]
-
-// Convert to List
-List<Integer> list = Arrays.asList(1, 2, 3);  // Fixed-size list
-List<Integer> mutableList = new ArrayList<>(Arrays.asList(1, 2, 3));
-
-// Stream
-Arrays.stream(arr).sum();
-Arrays.stream(arr).average();
+// Method reference (ngắn hơn nữa)
+list.forEach(System.out::println);
 ```
 
 ---
 
-## 7. Comparable và Comparator
+## 6. Comparable và Comparator (Sắp xếp tùy chỉnh)
 
-### 7.1. Comparable
+### Tại sao cần?
+
+`Collections.sort()` biết cách sắp xếp String (A-Z) và số (nhỏ→lớn). Nhưng nếu bạn có **object tự tạo** (ví dụ: Student), Java **KHÔNG BIẾT** sắp xếp theo tiêu chí nào (tên? tuổi? điểm?).
+
+### 6.1. Comparable (Sắp xếp "mặc định" — implement vào class)
 
 ```java
+// Student tự biết cách so sánh với Student khác
 public class Student implements Comparable<Student> {
-    private String name;
-    private int age;
-    private double gpa;
+    private String name;   // Tên
+    private int age;       // Tuổi
+    private double gpa;    // Điểm trung bình
 
-    // Constructor, getters, setters...
+    public Student(String name, int age, double gpa) {
+        this.name = name;
+        this.age = age;
+        this.gpa = gpa;
+    }
 
+    // compareTo: quy tắc sắp xếp MẶC ĐỊNH
+    // Ở đây: sắp xếp theo GPA GIẢM DẦN (điểm cao lên trước)
     @Override
     public int compareTo(Student other) {
-        // Sort by GPA descending
-        return Double.compare(other.gpa, this.gpa);
+        // Trả về:
+        //   < 0 nếu this đứng TRƯỚC other
+        //   > 0 nếu this đứng SAU other
+        //   = 0 nếu BẰNG nhau
+        return Double.compare(other.gpa, this.gpa); // Giảm dần
+    }
+
+    @Override
+    public String toString() {
+        return name + " (GPA: " + gpa + ")";
+    }
+
+    // Getters...
+    public String getName() { return name; }
+    public int getAge() { return age; }
+    public double getGpa() { return gpa; }
+}
+
+// Sử dụng:
+List<Student> students = new ArrayList<>();
+students.add(new Student("An", 20, 3.5));
+students.add(new Student("Bình", 22, 3.8));
+students.add(new Student("Châu", 21, 3.2));
+
+Collections.sort(students);  // Dùng compareTo() → sắp theo GPA giảm dần
+// Kết quả: Bình (3.8), An (3.5), Châu (3.2)
+```
+
+### 6.2. Comparator (Sắp xếp "tùy chỉnh" — tạo bên ngoài class)
+
+Khi bạn muốn sắp xếp theo **nhiều tiêu chí khác nhau**, hoặc không thể sửa class gốc:
+
+```java
+import java.util.Comparator;
+
+// ===== Cách 1: Lambda (ngắn gọn nhất — dùng nhiều nhất) =====
+
+// Sắp xếp theo TÊN (A-Z)
+students.sort((s1, s2) -> s1.getName().compareTo(s2.getName()));
+
+// Sắp xếp theo TUỔI (tăng dần)
+students.sort((s1, s2) -> Integer.compare(s1.getAge(), s2.getAge()));
+
+// ===== Cách 2: Comparator.comparing() — DỄ ĐỌC NHẤT =====
+
+// Theo tên A-Z
+students.sort(Comparator.comparing(Student::getName));
+
+// Theo GPA giảm dần
+students.sort(Comparator.comparing(Student::getGpa).reversed());
+
+// Theo tên A-Z, nếu trùng tên → theo tuổi tăng dần
+students.sort(
+    Comparator.comparing(Student::getName)
+              .thenComparingInt(Student::getAge)
+);
+
+// Theo GPA giảm dần, nếu trùng GPA → theo tên A-Z
+students.sort(
+    Comparator.comparing(Student::getGpa).reversed()
+              .thenComparing(Student::getName)
+);
+
+// ===== Xử lý NULL an toàn =====
+// nullsFirst: phần tử null đứng ĐẦU
+// nullsLast: phần tử null đứng CUỐI
+students.sort(Comparator.nullsFirst(
+    Comparator.comparing(Student::getName)
+));
+```
+
+💡 **Mẹo nhớ:**
+- **Comparable** = "Tôi TỰ BIẾT cách so sánh" → implement `compareTo()` trong class
+- **Comparator** = "NGƯỜI KHÁC chỉ tôi cách so sánh" → tạo bên ngoài class
+
+---
+
+## 7. Sai lầm thường gặp
+
+### Sai lầm 1: Xóa phần tử khi đang duyệt for-each
+
+```java
+List<String> list = new ArrayList<>(List.of("A", "B", "C"));
+
+// ❌ CRASH: ConcurrentModificationException
+for (String item : list) {
+    if (item.equals("B")) {
+        list.remove(item);  // KHÔNG ĐƯỢC xóa trong for-each!
     }
 }
 
-// Sử dụng
-List<Student> students = new ArrayList<>();
-students.add(new Student("John", 20, 3.5));
-students.add(new Student("Jane", 22, 3.8));
-students.add(new Student("Bob", 21, 3.2));
+// ✅ Dùng Iterator
+Iterator<String> it = list.iterator();
+while (it.hasNext()) {
+    if (it.next().equals("B")) {
+        it.remove();
+    }
+}
 
-Collections.sort(students);  // Sorted by GPA descending
+// ✅ Hoặc removeIf (Java 8+)
+list.removeIf(item -> item.equals("B"));
 ```
 
-### 7.2. Comparator
+### Sai lầm 2: Dùng `==` thay vì `.equals()` cho key trong Map
 
 ```java
-// Anonymous class
-Comparator<Student> byName = new Comparator<Student>() {
-    @Override
-    public int compare(Student s1, Student s2) {
-        return s1.getName().compareTo(s2.getName());
-    }
-};
+Map<String, Integer> map = new HashMap<>();
+map.put(new String("key"), 100);
 
-// Lambda
-Comparator<Student> byAge = (s1, s2) -> Integer.compare(s1.getAge(), s2.getAge());
+// ❌ SAI: Có thể không tìm thấy!
+Integer value = map.get(new String("key"));
+// Thực ra HashMap dùng .equals() nên OK trong trường hợp này
+// Nhưng nếu key là object tùy chỉnh mà không override equals/hashCode → lỗi!
+```
 
-// Method reference
-Comparator<Student> byGpa = Comparator.comparing(Student::getGpa);
+⚠️ **Quy tắc:** Nếu dùng object tùy chỉnh làm key trong HashMap/HashSet → **PHẢI override cả `equals()` và `hashCode()`**!
 
-// Chaining
-Comparator<Student> byNameThenAge = Comparator
-    .comparing(Student::getName)
-    .thenComparingInt(Student::getAge);
+### Sai lầm 3: Thay đổi subList nghĩ là bản sao
 
-// Reversed
-Comparator<Student> byGpaDesc = Comparator.comparing(Student::getGpa).reversed();
+```java
+List<Integer> original = new ArrayList<>(List.of(1, 2, 3, 4, 5));
+List<Integer> sub = original.subList(0, 3);  // [1, 2, 3]
 
-// Null-safe
-Comparator<Student> nullSafe = Comparator.nullsFirst(
-    Comparator.comparing(Student::getName)
-);
+// ⚠️ sub là VIEW, không phải bản sao!
+sub.set(0, 99);  // Sửa sub → original CŨNG bị sửa!
+System.out.println(original);  // [99, 2, 3, 4, 5] ← Bị thay đổi!
 
-// Sử dụng
-Collections.sort(students, byName);
-students.sort(byAge);
+// ✅ Muốn bản sao độc lập:
+List<Integer> copy = new ArrayList<>(original.subList(0, 3));
+```
+
+### Sai lầm 4: Nhầm lẫn List.of() là mutable
+
+```java
+// ❌ List.of() tạo list IMMUTABLE (không thể thay đổi)
+List<String> list = List.of("A", "B", "C");
+list.add("D");  // UnsupportedOperationException!
+
+// ✅ Muốn list có thể thay đổi:
+List<String> mutableList = new ArrayList<>(List.of("A", "B", "C"));
+mutableList.add("D");  // OK!
 ```
 
 ---
 
-## 8. Bài tập thực hành
+## 8. Tóm tắt cuối ngày
 
-### Bài 1: Word Counter
-Đếm số lần xuất hiện của mỗi từ trong một đoạn văn.
+### Bảng tổng hợp kiến thức
+
+| Khái niệm | Giải thích tiếng Việt | Đặc điểm chính |
+|-----------|----------------------|-----------------|
+| **Collection** | Khung bộ sưu tập | Interface gốc |
+| **List** | Danh sách | Có thứ tự, cho phép trùng |
+| **ArrayList** | Mảng tự giãn nở | Nhanh get/set, dùng 90% |
+| **LinkedList** | Danh sách liên kết | Nhanh add/remove đầu-cuối |
+| **Set** | Tập hợp | KHÔNG trùng lặp |
+| **HashSet** | Tập hợp dùng hash | Nhanh nhất, không thứ tự |
+| **LinkedHashSet** | Tập hợp giữ thứ tự thêm | Có thứ tự, không trùng |
+| **TreeSet** | Tập hợp tự sắp xếp | Tự sort, O(log n) |
+| **Map** | Bản đồ key-value | Key unique, tra cứu nhanh |
+| **HashMap** | Map dùng hash | Nhanh nhất, dùng nhiều nhất |
+| **LinkedHashMap** | Map giữ thứ tự thêm | Có thứ tự, dùng cho cache |
+| **TreeMap** | Map tự sắp xếp theo key | Key tự sort |
+| **Iterator** | Bộ duyệt | An toàn khi xóa phần tử |
+| **Comparable** | Interface "tự so sánh" | Override `compareTo()` |
+| **Comparator** | Interface "so sánh bên ngoài" | Sắp xếp linh hoạt |
+
+### 🔥 Câu hỏi phỏng vấn thường gặp
+
+1. **ArrayList vs LinkedList khác nhau thế nào?**
+   → ArrayList: truy cập index O(1), thêm/xóa giữa O(n). LinkedList: truy cập O(n), thêm/xóa đầu-cuối O(1).
+
+2. **HashSet vs TreeSet?**
+   → HashSet: O(1) nhanh nhất, không thứ tự. TreeSet: O(log n) chậm hơn, tự sắp xếp.
+
+3. **HashMap vs TreeMap?**
+   → HashMap: O(1), không thứ tự. TreeMap: O(log n), key sắp xếp.
+
+4. **Làm sao xóa phần tử an toàn khi đang duyệt?**
+   → Dùng `Iterator.remove()` hoặc `collection.removeIf()`.
+
+5. **Comparable vs Comparator?**
+   → Comparable: sắp xếp mặc định trong class (compareTo). Comparator: sắp xếp tùy chỉnh bên ngoài.
+
+6. **Tại sao cần override equals và hashCode khi dùng HashMap?**
+   → HashMap dùng hashCode() để tìm bucket, dùng equals() để so sánh key. Nếu không override → 2 object "giống nhau" sẽ bị coi là khác nhau.
+
+---
+
+## 9. Bài tập thực hành
+
+### Bài 1: Word Counter (Đếm từ)
+
+Đếm số lần xuất hiện của mỗi từ trong đoạn văn.
 
 ```java
 String text = "the quick brown fox jumps over the lazy dog the fox";
-// Output: {the=3, quick=1, brown=1, fox=2, ...}
+// Output: {the=3, fox=2, quick=1, brown=1, jumps=1, over=1, lazy=1, dog=1}
 ```
 
----
+### Bài 2: Remove Duplicates (Xóa trùng lặp)
 
-### Bài 2: Remove Duplicates
-Viết method xóa duplicates từ List, giữ thứ tự.
+Xóa phần tử trùng lặp từ List, **giữ nguyên thứ tự**.
 
 ```java
 List<Integer> list = Arrays.asList(1, 2, 3, 2, 1, 4, 3, 5);
 // Output: [1, 2, 3, 4, 5]
 ```
 
----
-
-### Bài 3: Find First Non-Repeated Character
-Tìm ký tự đầu tiên không lặp lại trong chuỗi.
+### Bài 3: First Non-Repeated Character (Ký tự không lặp đầu tiên)
 
 ```java
-findFirstUnique("swiss");  // 'w'
-findFirstUnique("aabbcc"); // null
+findFirstUnique("swiss");   // 'w'
+findFirstUnique("aabbcc");  // null (tất cả đều lặp)
 ```
 
----
+### Bài 4: Group Students by Grade (Nhóm học sinh theo hạng)
 
-### Bài 4: Group Students by Grade
-Nhóm học sinh theo hạng (A, B, C, D, F) dựa trên điểm.
-
----
+Nhóm học sinh theo hạng (A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60, F < 60) dựa trên điểm.
 
 ### Bài 5: LRU Cache
-Implement LRU (Least Recently Used) Cache với capacity cố định.
+
+Implement LRU Cache (Least Recently Used — loại bỏ phần tử ít dùng nhất) với capacity cố định.
 
 ```java
 LRUCache<Integer, String> cache = new LRUCache<>(3);
-cache.put(1, "One");
-cache.put(2, "Two");
-cache.put(3, "Three");
-cache.get(1);  // Access 1
-cache.put(4, "Four");  // Evict 2 (least recently used)
+cache.put(1, "Một");
+cache.put(2, "Hai");
+cache.put(3, "Ba");
+cache.get(1);              // Truy cập 1 → 1 trở thành "recently used"
+cache.put(4, "Bốn");       // Capacity đầy → loại bỏ 2 (ít dùng nhất)
 ```
 
 ---
 
-## 9. Đáp án tham khảo
+## 10. Đáp án tham khảo
 
 <details>
-<summary>Bài 1: Word Counter</summary>
+<summary>Bài 1: Word Counter (Click để xem)</summary>
 
 ```java
+import java.util.*;
+
 public class WordCounter {
 
     public static Map<String, Integer> countWords(String text) {
         Map<String, Integer> wordCount = new HashMap<>();
 
+        // Tách chuỗi thành mảng từ (viết thường để đồng nhất)
         String[] words = text.toLowerCase().split("\\s+");
+
         for (String word : words) {
+            // merge: nếu key chưa có → đặt value = 1
+            //        nếu key đã có → value = value cũ + 1
             wordCount.merge(word, 1, Integer::sum);
-            // Hoặc:
+
+            // Cách khác (dài hơn):
             // wordCount.put(word, wordCount.getOrDefault(word, 0) + 1);
         }
 
         return wordCount;
     }
 
-    // Sắp xếp theo frequency
-    public static Map<String, Integer> countWordsSorted(String text) {
-        Map<String, Integer> wordCount = countWords(text);
-
-        // Sort by value descending
-        return wordCount.entrySet().stream()
-            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue,
-                (e1, e2) -> e1,
-                LinkedHashMap::new
-            ));
-    }
-
     public static void main(String[] args) {
         String text = "the quick brown fox jumps over the lazy dog the fox";
         Map<String, Integer> result = countWords(text);
-        result.forEach((word, count) ->
-            System.out.println(word + ": " + count));
+
+        // In kết quả sắp xếp theo số lần xuất hiện giảm dần
+        result.entrySet().stream()
+            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+            .forEach(entry ->
+                System.out.println(entry.getKey() + ": " + entry.getValue()));
     }
 }
 ```
 </details>
 
 <details>
-<summary>Bài 2: Remove Duplicates</summary>
+<summary>Bài 2: Remove Duplicates (Click để xem)</summary>
 
 ```java
+import java.util.*;
+
 public class RemoveDuplicates {
 
+    // Cách 1: Dùng LinkedHashSet (giữ thứ tự + loại trùng)
     public static <T> List<T> removeDuplicates(List<T> list) {
-        // LinkedHashSet giữ thứ tự
+        // LinkedHashSet tự động loại trùng + giữ thứ tự thêm vào
         return new ArrayList<>(new LinkedHashSet<>(list));
     }
 
-    // Không dùng Set
+    // Cách 2: Không dùng Set (thủ công)
     public static <T> List<T> removeDuplicatesManual(List<T> list) {
         List<T> result = new ArrayList<>();
         for (T item : list) {
-            if (!result.contains(item)) {
+            if (!result.contains(item)) { // Chỉ thêm nếu chưa có
                 result.add(item);
             }
         }
@@ -737,25 +1015,30 @@ public class RemoveDuplicates {
 </details>
 
 <details>
-<summary>Bài 3: First Non-Repeated Character</summary>
+<summary>Bài 3: First Non-Repeated Character (Click để xem)</summary>
 
 ```java
+import java.util.*;
+
 public class FirstUnique {
 
     public static Character findFirstUnique(String str) {
+        // Dùng LinkedHashMap để GIỮ THỨ TỰ ký tự xuất hiện
         Map<Character, Integer> charCount = new LinkedHashMap<>();
 
+        // Bước 1: Đếm số lần xuất hiện mỗi ký tự
         for (char c : str.toCharArray()) {
             charCount.merge(c, 1, Integer::sum);
         }
 
+        // Bước 2: Tìm ký tự ĐẦU TIÊN có count = 1
         for (Map.Entry<Character, Integer> entry : charCount.entrySet()) {
             if (entry.getValue() == 1) {
-                return entry.getKey();
+                return entry.getKey(); // Trả về ký tự đầu tiên không lặp
             }
         }
 
-        return null;
+        return null; // Tất cả ký tự đều lặp
     }
 
     public static void main(String[] args) {
@@ -768,35 +1051,42 @@ public class FirstUnique {
 </details>
 
 <details>
-<summary>Bài 5: LRU Cache</summary>
+<summary>Bài 5: LRU Cache (Click để xem)</summary>
 
 ```java
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+// Kế thừa LinkedHashMap với accessOrder = true
+// → Phần tử ít dùng nhất nằm ĐẦU, vừa dùng nằm CUỐI
 public class LRUCache<K, V> extends LinkedHashMap<K, V> {
-    private final int capacity;
+    private final int capacity; // Sức chứa tối đa
 
     public LRUCache(int capacity) {
-        super(capacity, 0.75f, true);  // accessOrder = true
+        // accessOrder = true: sắp xếp theo lần truy cập gần nhất
+        super(capacity, 0.75f, true);
         this.capacity = capacity;
     }
 
+    // Override: tự động xóa phần tử CŨ NHẤT khi vượt capacity
     @Override
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-        return size() > capacity;
+        return size() > capacity; // Xóa phần tử đầu nếu quá sức chứa
     }
 
     public static void main(String[] args) {
         LRUCache<Integer, String> cache = new LRUCache<>(3);
 
-        cache.put(1, "One");
-        cache.put(2, "Two");
-        cache.put(3, "Three");
-        System.out.println(cache);  // {1=One, 2=Two, 3=Three}
+        cache.put(1, "Một");
+        cache.put(2, "Hai");
+        cache.put(3, "Ba");
+        System.out.println(cache);  // {1=Một, 2=Hai, 3=Ba}
 
-        cache.get(1);  // Access 1
-        System.out.println(cache);  // {2=Two, 3=Three, 1=One}
+        cache.get(1);  // Truy cập 1 → 1 được đưa lên cuối (recently used)
+        System.out.println(cache);  // {2=Hai, 3=Ba, 1=Một}
 
-        cache.put(4, "Four");  // Evict 2
-        System.out.println(cache);  // {3=Three, 1=One, 4=Four}
+        cache.put(4, "Bốn");  // Quá capacity → loại 2 (ít dùng nhất, ở đầu)
+        System.out.println(cache);  // {3=Ba, 1=Một, 4=Bốn}
     }
 }
 ```
@@ -806,5 +1096,5 @@ public class LRUCache<K, V> extends LinkedHashMap<K, V> {
 
 ## Navigation
 
-- [← Day 6: Strings & Wrappers](./day-06-strings-wrappers.md)
-- [Day 8: Generics →](./day-08-generics.md)
+- [← Day 6: Strings & Wrappers (Chuỗi & Lớp Bọc)](./day-06-strings-wrappers.md)
+- [Day 8: Generics (Kiểu Tổng Quát) →](./day-08-generics.md)

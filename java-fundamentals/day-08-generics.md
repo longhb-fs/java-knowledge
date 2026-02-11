@@ -1,48 +1,84 @@
-# Day 8: Generics
+# Day 8: Generics (Kiểu Tổng Quát)
 
-## Mục tiêu
-- Hiểu Generic types
-- Generic classes và methods
-- Bounded type parameters
-- Wildcards
-- Type erasure
+## Mục tiêu hôm nay
+
+Sau khi học xong Day 8, bạn sẽ:
+- Hiểu **Generics** (kiểu tổng quát) là gì và tại sao cần
+- Tạo **Generic Class** (lớp tổng quát) và **Generic Method** (phương thức tổng quát)
+- Sử dụng **Bounded Type Parameters** (giới hạn kiểu) với `extends`
+- Hiểu **Wildcards** (ký tự đại diện): `?`, `? extends`, `? super`
+- Nắm nguyên tắc **PECS** (Producer Extends, Consumer Super)
+- Biết **Type Erasure** (xóa kiểu) — cách Generics hoạt động bên trong
 
 ---
 
-## 1. Tại sao cần Generics?
+## Tại sao cần học Generics?
 
-### 1.1. Vấn đề không có Generics
+### Vấn đề TRƯỚC khi có Generics (Java < 5)
 
 ```java
-// Trước Java 5 - không có generics
+// TRƯỚC Java 5: List không có kiểu — chứa BẤT KỲ object nào
 List list = new ArrayList();
-list.add("Hello");
-list.add(123);  // Có thể add bất kỳ type
+list.add("Hello");    // Thêm String ✅
+list.add(123);        // Thêm Integer ✅ (nhưng VÔ TÌNH!)
+list.add(true);       // Thêm Boolean ✅ (hỗn loạn!)
 
-String s = (String) list.get(0);  // Phải cast
-String s2 = (String) list.get(1);  // ClassCastException tại runtime!
+// Lấy ra PHẢI ép kiểu (cast) → DỄ LỖI!
+String s1 = (String) list.get(0);  // OK → "Hello"
+String s2 = (String) list.get(1);  // CRASH! ClassCastException!
+//          ↑ Integer không thể ép thành String!
 ```
 
-### 1.2. Với Generics
+**Vấn đề:** Lỗi chỉ phát hiện **lúc chạy** (runtime) → khó debug, nguy hiểm!
+
+### Giải pháp: Generics (Java 5+)
 
 ```java
-// Với generics - type-safe
-List<String> list = new ArrayList<>();
-list.add("Hello");
-// list.add(123);  // Compile error!
+// SAU Java 5: List CÓ kiểu → an toàn
+List<String> list = new ArrayList<>();  // Chỉ chứa String
+list.add("Hello");    // OK ✅
+// list.add(123);     // LỖI NGAY LÚC VIẾT CODE! ❌ Compiler báo lỗi
+// list.add(true);    // LỖI NGAY LÚC VIẾT CODE! ❌
 
-String s = list.get(0);  // Không cần cast
+String s = list.get(0);  // KHÔNG CẦN ép kiểu! Compiler biết là String
+```
+
+**Lợi ích:**
+- Lỗi phát hiện **ngay lúc viết code** (compile-time) → an toàn hơn
+- **Không cần ép kiểu** (cast) → code sạch hơn
+- **Tái sử dụng** code — 1 class dùng được cho nhiều kiểu dữ liệu
+
+### Ví dụ đời thường
+
+```
+KHÔNG có Generics:
+  Một chiếc hộp KHÔNG có nhãn:
+  ┌─────────┐
+  │  ???     │  ← Bỏ gì vào cũng được (táo, sách, giày...)
+  └─────────┘    Lấy ra phải đoán "cái gì bên trong?" → dễ nhầm!
+
+CÓ Generics:
+  Hộp CÓ NHÃN rõ ràng:
+  ┌─────────┐
+  │ 🍎 Táo  │  ← Chỉ bỏ được TÁO vào
+  └─────────┘    Lấy ra CHẮC CHẮN là táo → không nhầm!
+
+  Box<String>  → Hộp chỉ chứa String
+  Box<Integer> → Hộp chỉ chứa Integer
+  Box<User>    → Hộp chỉ chứa User
 ```
 
 ---
 
-## 2. Generic Classes
+## 1. Generic Classes (Lớp tổng quát)
 
-### 2.1. Basic Generic Class
+### 1.1. Tạo Generic Class cơ bản
 
 ```java
+// <T> = Type Parameter (tham số kiểu)
+// T là "biến kiểu" — sẽ được thay thế bằng kiểu thực tế khi sử dụng
 public class Box<T> {
-    private T content;
+    private T content;  // content có kiểu T (chưa biết cụ thể)
 
     public void set(T content) {
         this.content = content;
@@ -51,21 +87,66 @@ public class Box<T> {
     public T get() {
         return content;
     }
+
+    @Override
+    public String toString() {
+        return "Box chứa: " + content;
+    }
 }
-
-// Sử dụng
-Box<String> stringBox = new Box<>();
-stringBox.set("Hello");
-String s = stringBox.get();
-
-Box<Integer> intBox = new Box<>();
-intBox.set(123);
-Integer i = intBox.get();
 ```
 
-### 2.2. Multiple Type Parameters
+**Sử dụng:**
 
 ```java
+public class BoxDemo {
+    public static void main(String[] args) {
+
+        // Box<String> → T được thay thế bằng String
+        // → content là String, set() nhận String, get() trả về String
+        Box<String> stringBox = new Box<>();
+        stringBox.set("Xin chào!");
+        String greeting = stringBox.get();  // Không cần cast!
+        System.out.println(stringBox);      // Box chứa: Xin chào!
+
+        // Box<Integer> → T được thay thế bằng Integer
+        Box<Integer> intBox = new Box<>();
+        intBox.set(42);
+        int number = intBox.get();  // Tự động unboxing
+        System.out.println(intBox); // Box chứa: 42
+
+        // Box<User> → T được thay thế bằng User
+        Box<User> userBox = new Box<>();
+        userBox.set(new User("An", 25));
+        User user = userBox.get();
+    }
+}
+```
+
+**Quá trình thay thế kiểu:**
+
+```
+Box<T> (khai báo)        Box<String> (sử dụng)
+─────────────────        ────────────────────
+private T content;   →   private String content;
+void set(T content)  →   void set(String content)
+T get()              →   String get()
+```
+
+### Quy ước đặt tên Type Parameter
+
+| Ký hiệu | Ý nghĩa | Ví dụ |
+|----------|---------|-------|
+| `T` | **T**ype — kiểu chung | `Box<T>`, `List<T>` |
+| `E` | **E**lement — phần tử | `List<E>`, `Set<E>` |
+| `K` | **K**ey — khóa | `Map<K, V>` |
+| `V` | **V**alue — giá trị | `Map<K, V>` |
+| `N` | **N**umber — số | `MathBox<N>` |
+| `R` | **R**eturn — kiểu trả về | `Function<T, R>` |
+
+### 1.2. Generic Class với nhiều Type Parameter
+
+```java
+// Pair có 2 type parameters: K (Key) và V (Value)
 public class Pair<K, V> {
     private K key;
     private V value;
@@ -84,17 +165,25 @@ public class Pair<K, V> {
     }
 }
 
-// Sử dụng
-Pair<String, Integer> pair = new Pair<>("Age", 25);
-System.out.println(pair.getKey());    // "Age"
-System.out.println(pair.getValue());  // 25
+// Sử dụng:
+// K = String, V = Integer
+Pair<String, Integer> nameAge = new Pair<>("An", 25);
+System.out.println(nameAge.getKey());    // "An"
+System.out.println(nameAge.getValue());  // 25
 
-Pair<Integer, String> reversed = new Pair<>(1, "One");
+// K = Integer, V = String
+Pair<Integer, String> idName = new Pair<>(1, "Bình");
+
+// K = String, V = List<String>
+Pair<String, List<String>> config = new Pair<>("hosts", List.of("server1", "server2"));
 ```
 
-### 2.3. Generic Class với Inheritance
+### 1.3. Generic Class với giới hạn kiểu (Bounded)
 
 ```java
+// <T extends Number> = T CHỈ được là Number hoặc con của Number
+// → Integer, Double, Long... OK
+// → String, Boolean... KHÔNG OK!
 public class NumberBox<T extends Number> {
     private T number;
 
@@ -102,227 +191,326 @@ public class NumberBox<T extends Number> {
         this.number = number;
     }
 
+    // Vì T extends Number → có thể gọi method của Number
     public double getDoubleValue() {
-        return number.doubleValue();
+        return number.doubleValue();  // Method của Number
+    }
+
+    public boolean isPositive() {
+        return number.doubleValue() > 0;
     }
 }
 
-// Sử dụng
+// Sử dụng:
 NumberBox<Integer> intBox = new NumberBox<>(10);
+System.out.println(intBox.getDoubleValue());  // 10.0
+
 NumberBox<Double> doubleBox = new NumberBox<>(3.14);
-// NumberBox<String> stringBox = new NumberBox<>("Hi");  // Error!
+System.out.println(doubleBox.isPositive());   // true
+
+// NumberBox<String> sBox = new NumberBox<>("Hi");
+// ❌ COMPILE ERROR! String không phải Number!
 ```
 
 ---
 
-## 3. Generic Methods
+## 2. Generic Methods (Phương thức tổng quát)
 
-### 3.1. Basic Generic Method
+### Tại sao cần Generic Method?
+
+Đôi khi bạn không cần TOÀN BỘ class là generic, chỉ cần **1 method** hoạt động với nhiều kiểu.
+
+### 2.1. Cú pháp
 
 ```java
-public class Utils {
+//     ↓ Type parameter đặt TRƯỚC return type
+public static <T> void printArray(T[] array) {
+    for (T element : array) {
+        System.out.print(element + " ");
+    }
+    System.out.println();
+}
+```
 
-    // Generic method - type parameter trước return type
+**Phân tích:**
+```
+public static <T>  void  printArray(T[] array)
+               ↑    ↑                ↑
+               │    │                └── Tham số: mảng kiểu T
+               │    └── Kiểu trả về: void
+               └── Khai báo type parameter T
+```
+
+### 2.2. Ví dụ
+
+```java
+public class GenericMethodDemo {
+
+    // Generic method: in mảng bất kỳ kiểu nào
     public static <T> void printArray(T[] array) {
+        System.out.print("[ ");
         for (T element : array) {
             System.out.print(element + " ");
         }
-        System.out.println();
+        System.out.println("]");
     }
 
+    // Generic method: lấy phần tử đầu tiên
     public static <T> T getFirst(List<T> list) {
-        if (list.isEmpty()) {
+        if (list == null || list.isEmpty()) {
             return null;
         }
-        return list.get(0);
+        return list.get(0);  // Trả về kiểu T
+    }
+
+    // Generic method: hoán đổi 2 phần tử trong mảng
+    public static <T> void swap(T[] array, int i, int j) {
+        T temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    public static void main(String[] args) {
+        // Java TỰ ĐỘNG suy luận kiểu T từ tham số truyền vào
+
+        // T = String (suy từ String[])
+        String[] names = {"An", "Bình", "Châu"};
+        printArray(names);    // [ An Bình Châu ]
+
+        // T = Integer (suy từ Integer[])
+        Integer[] numbers = {1, 2, 3};
+        printArray(numbers);  // [ 1 2 3 ]
+
+        // T = String (suy từ List<String>)
+        List<String> list = List.of("X", "Y", "Z");
+        String first = getFirst(list);  // "X"
+
+        // Hoán đổi
+        swap(names, 0, 2);
+        printArray(names);    // [ Châu Bình An ]
     }
 }
-
-// Sử dụng
-String[] strings = {"A", "B", "C"};
-Integer[] integers = {1, 2, 3};
-
-Utils.printArray(strings);   // A B C
-Utils.printArray(integers);  // 1 2 3
-
-List<String> list = Arrays.asList("X", "Y", "Z");
-String first = Utils.getFirst(list);  // "X"
 ```
 
-### 3.2. Multiple Type Parameters
+### 2.3. Generic Method với nhiều Type Parameter
 
 ```java
 public class Utils {
 
+    // Tạo Pair từ 2 giá trị bất kỳ
+    public static <T, U> Pair<T, U> makePair(T first, U second) {
+        return new Pair<>(first, second);
+    }
+
+    // In cặp key-value
     public static <K, V> void printPair(K key, V value) {
         System.out.println(key + " = " + value);
     }
 
-    public static <T, U> Pair<T, U> makePair(T first, U second) {
-        return new Pair<>(first, second);
+    public static void main(String[] args) {
+        Pair<String, Integer> pair = makePair("Tuổi", 25);
+        // T = String, U = Integer (tự suy luận)
+
+        printPair("Tên", "An");    // Tên = An
+        printPair(1, true);         // 1 = true
     }
 }
-
-// Sử dụng
-Utils.printPair("Name", "John");
-Utils.printPair(1, true);
-
-Pair<String, Integer> pair = Utils.makePair("Age", 25);
 ```
 
-### 3.3. Generic Method trong Generic Class
+### 2.4. Generic Method với Bounded Type
 
 ```java
-public class Container<T> {
-    private T item;
+public class MathUtils {
 
-    public void setItem(T item) {
-        this.item = item;
-    }
-
-    // Generic method với type parameter riêng
-    public <U> void inspect(U data) {
-        System.out.println("T: " + item.getClass().getName());
-        System.out.println("U: " + data.getClass().getName());
-    }
-}
-
-Container<Integer> container = new Container<>();
-container.setItem(10);
-container.inspect("Hello");  // U là String
-```
-
----
-
-## 4. Bounded Type Parameters
-
-### 4.1. Upper Bounded (extends)
-
-```java
-// T phải là Number hoặc subclass của Number
-public class MathBox<T extends Number> {
-    private T value;
-
-    public MathBox(T value) {
-        this.value = value;
-    }
-
-    public double square() {
-        return value.doubleValue() * value.doubleValue();
-    }
-}
-
-MathBox<Integer> intBox = new MathBox<>(5);
-System.out.println(intBox.square());  // 25.0
-
-MathBox<Double> doubleBox = new MathBox<>(3.14);
-System.out.println(doubleBox.square());  // 9.8596
-```
-
-### 4.2. Multiple Bounds
-
-```java
-// T phải extend Number VÀ implement Comparable
-public class SortableBox<T extends Number & Comparable<T>> {
-    private T value;
-
-    public SortableBox(T value) {
-        this.value = value;
-    }
-
-    public boolean isGreaterThan(T other) {
-        return value.compareTo(other) > 0;
-    }
-}
-
-// Class trước, interfaces sau
-// <T extends SomeClass & Interface1 & Interface2>
-```
-
-### 4.3. Generic Method với Bounds
-
-```java
-public class Utils {
-
-    // Tìm max trong list
+    // T phải là Comparable → có thể so sánh được
     public static <T extends Comparable<T>> T findMax(List<T> list) {
-        if (list.isEmpty()) {
+        if (list == null || list.isEmpty()) {
             return null;
         }
 
-        T max = list.get(0);
+        T max = list.get(0);  // Giả sử phần tử đầu là lớn nhất
         for (T item : list) {
-            if (item.compareTo(max) > 0) {
-                max = item;
+            if (item.compareTo(max) > 0) {  // item > max?
+                max = item;                  // Cập nhật max
             }
         }
         return max;
     }
 
-    // Tính tổng
+    // T phải là Number → có thể gọi doubleValue()
     public static <T extends Number> double sum(List<T> list) {
-        double sum = 0;
+        double total = 0;
         for (T num : list) {
-            sum += num.doubleValue();
+            total += num.doubleValue();  // Method của Number
         }
-        return sum;
+        return total;
+    }
+
+    public static void main(String[] args) {
+        List<Integer> numbers = List.of(3, 1, 4, 1, 5, 9);
+        System.out.println("Max: " + findMax(numbers));   // Max: 9
+        System.out.println("Tổng: " + sum(numbers));      // Tổng: 23.0
+
+        List<String> names = List.of("Châu", "An", "Bình");
+        System.out.println("Max: " + findMax(names));      // Max: Châu (theo bảng chữ cái)
+
+        // sum(names);  // ❌ ERROR! String không phải Number
     }
 }
-
-List<Integer> numbers = Arrays.asList(3, 1, 4, 1, 5);
-System.out.println(Utils.findMax(numbers));  // 5
-System.out.println(Utils.sum(numbers));      // 14.0
 ```
 
 ---
 
-## 5. Wildcards
+## 3. Bounded Type Parameters (Giới hạn kiểu)
 
-### 5.1. Unbounded Wildcard (?)
+### 3.1. Upper Bounded: `<T extends X>` (T phải là X hoặc con của X)
 
 ```java
-// Chấp nhận List của bất kỳ type nào
-public static void printList(List<?> list) {
+// T PHẢI là Number hoặc con của Number (Integer, Double, Long...)
+public class Calculator<T extends Number> {
+    private T value;
+
+    public Calculator(T value) {
+        this.value = value;
+    }
+
+    public double square() {
+        // Vì T extends Number → chắc chắn có method doubleValue()
+        return value.doubleValue() * value.doubleValue();
+    }
+}
+
+Calculator<Integer> calc1 = new Calculator<>(5);
+System.out.println(calc1.square());  // 25.0
+
+Calculator<Double> calc2 = new Calculator<>(3.14);
+System.out.println(calc2.square());  // 9.8596
+
+// Calculator<String> calc3 = new Calculator<>("Hi");
+// ❌ COMPILE ERROR! String không extends Number
+```
+
+### 3.2. Multiple Bounds: `<T extends A & B & C>`
+
+```java
+// T phải VỪA là Number VỪA implement Comparable
+// → Có thể tính toán VÀ so sánh
+public class SortableNumber<T extends Number & Comparable<T>> {
+    private T value;
+
+    public SortableNumber(T value) {
+        this.value = value;
+    }
+
+    public boolean isGreaterThan(T other) {
+        return value.compareTo(other) > 0;  // Từ Comparable
+    }
+
+    public double toDouble() {
+        return value.doubleValue();          // Từ Number
+    }
+}
+
+// Integer extends Number ✅ VÀ implements Comparable<Integer> ✅
+SortableNumber<Integer> num = new SortableNumber<>(10);
+System.out.println(num.isGreaterThan(5));   // true
+System.out.println(num.toDouble());          // 10.0
+```
+
+⚠️ **Quy tắc Multiple Bounds:** Class phải đặt **trước**, interface đặt **sau**:
+```java
+// ✅ ĐÚNG: Class trước, interface sau
+<T extends SomeClass & InterfaceA & InterfaceB>
+
+// ❌ SAI: Interface trước class
+<T extends InterfaceA & SomeClass>
+```
+
+---
+
+## 4. Wildcards (Ký tự đại diện `?`)
+
+### Tại sao cần Wildcards?
+
+```java
+// Bạn muốn viết method in bất kỳ List nào
+public static void printList(List<Object> list) {
     for (Object item : list) {
         System.out.println(item);
     }
 }
 
-List<String> strings = Arrays.asList("A", "B", "C");
-List<Integer> integers = Arrays.asList(1, 2, 3);
-
-printList(strings);   // OK
-printList(integers);  // OK
+List<String> names = List.of("An", "Bình");
+// printList(names);  // ❌ ERROR!
+// List<String> KHÔNG PHẢI là List<Object>!
+// Dù String là con của Object, nhưng List<String> KHÔNG phải con của List<Object>
 ```
 
-### 5.2. Upper Bounded Wildcard (? extends)
+⚠️ **Bẫy quan trọng:** `List<String>` **KHÔNG** phải là subtype của `List<Object>`!
+
+```
+Object ← String (String là con của Object ✅)
+List<Object> ← List<String> (KHÔNG phải! ❌)
+```
+
+**Giải pháp:** Dùng Wildcard `?`
+
+### 4.1. Unbounded Wildcard: `?` (Bất kỳ kiểu nào)
 
 ```java
-// Chấp nhận List của Number hoặc subclass
+// List<?> = "List của BẤT KỲ kiểu nào"
+public static void printList(List<?> list) {
+    for (Object item : list) {  // Lấy ra dưới dạng Object
+        System.out.println(item);
+    }
+}
+
+List<String> names = List.of("An", "Bình");
+List<Integer> numbers = List.of(1, 2, 3);
+
+printList(names);    // ✅ OK!
+printList(numbers);  // ✅ OK!
+
+// ⚠️ Nhưng KHÔNG THỂ thêm phần tử vào List<?>
+// list.add("Hello");  // ❌ ERROR! Không biết kiểu chính xác
+```
+
+### 4.2. Upper Bounded Wildcard: `? extends X` (X hoặc con của X)
+
+**Dùng khi:** Bạn muốn **ĐỌC** (read) từ collection.
+
+```java
+// List<? extends Number> = "List của Number HOẶC con của Number"
+// → Chấp nhận: List<Number>, List<Integer>, List<Double>, List<Long>...
 public static double sumOfList(List<? extends Number> list) {
     double sum = 0;
-    for (Number num : list) {
+    for (Number num : list) {       // Lấy ra dưới dạng Number
         sum += num.doubleValue();
     }
     return sum;
 }
 
-List<Integer> integers = Arrays.asList(1, 2, 3);
-List<Double> doubles = Arrays.asList(1.1, 2.2, 3.3);
+List<Integer> integers = List.of(1, 2, 3);
+List<Double> doubles = List.of(1.1, 2.2, 3.3);
+List<Long> longs = List.of(100L, 200L, 300L);
 
-System.out.println(sumOfList(integers));  // 6.0
-System.out.println(sumOfList(doubles));   // 6.6
+System.out.println(sumOfList(integers));  // 6.0  ✅
+System.out.println(sumOfList(doubles));   // 6.6  ✅
+System.out.println(sumOfList(longs));     // 600.0 ✅
 
-// Chỉ có thể READ, không thể ADD
-// list.add(1);  // Error! Không biết chính xác type
+// ⚠️ CHỈ ĐỌC được, KHÔNG GHI được!
+// list.add(1);  // ❌ ERROR! Vì không biết chính xác kiểu bên trong
 ```
 
-### 5.3. Lower Bounded Wildcard (? super)
+### 4.3. Lower Bounded Wildcard: `? super X` (X hoặc cha của X)
+
+**Dùng khi:** Bạn muốn **GHI** (write) vào collection.
 
 ```java
-// Chấp nhận List của Integer hoặc superclass (Number, Object)
+// List<? super Integer> = "List của Integer HOẶC cha của Integer"
+// → Chấp nhận: List<Integer>, List<Number>, List<Object>
 public static void addNumbers(List<? super Integer> list) {
-    list.add(1);
+    list.add(1);    // ✅ Thêm Integer vào được!
     list.add(2);
     list.add(3);
 }
@@ -331,264 +519,335 @@ List<Integer> intList = new ArrayList<>();
 List<Number> numList = new ArrayList<>();
 List<Object> objList = new ArrayList<>();
 
-addNumbers(intList);  // OK
-addNumbers(numList);  // OK
-addNumbers(objList);  // OK
+addNumbers(intList);  // ✅ Integer super Integer
+addNumbers(numList);  // ✅ Number super Integer
+addNumbers(objList);  // ✅ Object super Integer
 
-// Có thể ADD Integer, nhưng READ chỉ trả về Object
-// Integer i = list.get(0);  // Error!
-Object obj = list.get(0);    // OK
+// ⚠️ ĐỌC chỉ trả về Object (vì không biết kiểu chính xác)
+// Integer i = list.get(0);  // ❌ ERROR!
+Object obj = intList.get(0);  // ✅ OK nhưng phải dùng Object
 ```
 
-### 5.4. PECS: Producer Extends, Consumer Super
+### 4.4. 🔥 PECS: Producer Extends, Consumer Super
+
+Đây là nguyên tắc VÀNG khi dùng Wildcards, **RẤT HAY GẶP trong phỏng vấn**!
+
+```
+PECS = Producer Extends, Consumer Super
+
+Producer (Nguồn — ĐỌC dữ liệu ra):
+  → Dùng <? extends T>
+  → "Tôi SẢN XUẤT dữ liệu cho bạn đọc"
+  → CHỈ ĐỌC, không ghi
+
+Consumer (Đích — GHI dữ liệu vào):
+  → Dùng <? super T>
+  → "Tôi TIÊU THỤ dữ liệu bạn ghi vào"
+  → CHỈ GHI, đọc ra Object
+```
+
+**Ví dụ kinh điển: Copy danh sách**
 
 ```java
-// Copy từ source sang destination
-public static <T> void copy(List<? extends T> source, List<? super T> dest) {
-    for (T item : source) {
-        dest.add(item);
+// Copy từ nguồn (source) sang đích (dest)
+public static <T> void copy(
+        List<? extends T> source,  // Producer — đọc từ đây → extends
+        List<? super T> dest       // Consumer — ghi vào đây → super
+) {
+    for (T item : source) {   // ĐỌC từ source (Producer)
+        dest.add(item);       // GHI vào dest (Consumer)
     }
 }
 
-List<Integer> source = Arrays.asList(1, 2, 3);
-List<Number> dest = new ArrayList<>();
+// Sử dụng:
+List<Integer> source = List.of(1, 2, 3);   // Producer
+List<Number> dest = new ArrayList<>();       // Consumer
 
-copy(source, dest);  // Integer extends Number
+copy(source, dest);
+// Integer extends Number ✅
+// Number super Integer ✅
+
 System.out.println(dest);  // [1, 2, 3]
-
-// Producer (source) - extends - đọc từ đây
-// Consumer (dest) - super - ghi vào đây
 ```
+
+**Bảng tóm tắt PECS:**
+
+| Tình huống | Dùng gì? | Có thể làm gì? | Ví dụ |
+|-----------|----------|-----------------|-------|
+| Chỉ **ĐỌC** từ collection | `? extends T` | ĐỌC ✅ GHI ❌ | `sumOfList(List<? extends Number>)` |
+| Chỉ **GHI** vào collection | `? super T` | ĐỌC ❌* GHI ✅ | `addNumbers(List<? super Integer>)` |
+| **Đọc VÀ Ghi** | `T` (không wildcard) | ĐỌC ✅ GHI ✅ | `process(List<T> list)` |
+| Không cần biết kiểu | `?` | ĐỌC Object ✅ GHI ❌ | `printList(List<?>)` |
+
+*Đọc chỉ trả về Object
 
 ---
 
-## 6. Type Erasure
+## 5. Type Erasure (Xóa kiểu — Cách Generics hoạt động bên trong)
 
-### 6.1. Concept
+### 5.1. Generics chỉ tồn tại lúc COMPILE, không tồn tại lúc RUNTIME
 
 ```java
-// Compile time
-List<String> list = new ArrayList<>();
+// Lúc bạn VIẾT code (compile-time):
+List<String> strings = new ArrayList<>();
+List<Integer> numbers = new ArrayList<>();
 
-// Runtime (after erasure)
-List list = new ArrayList();
+// Lúc Java CHẠY code (runtime) — Generics bị XÓA:
+List strings = new ArrayList();   // ← String biến mất!
+List numbers = new ArrayList();   // ← Integer biến mất!
 
-// Generics chỉ tồn tại tại compile time
-// JVM không biết generic type tại runtime
+// JVM KHÔNG BIẾT generic type lúc runtime!
 ```
 
-### 6.2. Implications
+**Tại sao Java làm vậy?** Để đảm bảo **backward compatibility** (tương thích ngược) với code Java cũ (trước Java 5).
+
+### 5.2. Những gì KHÔNG THỂ làm với Generics
 
 ```java
-// Không thể làm những điều này:
 public class MyClass<T> {
-    // T obj = new T();           // Error! Không thể instantiate type parameter
-    // T[] arr = new T[10];       // Error! Không thể tạo array
-    // if (obj instanceof T)     // Error! Không thể instanceof
+    // ❌ Không thể tạo object từ type parameter
+    // T obj = new T();
+    // → Vì runtime không biết T là gì!
 
-    private T item;
+    // ❌ Không thể tạo mảng từ type parameter
+    // T[] arr = new T[10];
 
-    // Workaround: truyền Class
+    // ❌ Không thể dùng instanceof với type parameter
+    // if (obj instanceof T) { }
+
+    // ❌ Không thể tạo generic exception
+    // class MyException<T> extends Exception { }
+
+    // ✅ Workaround: truyền Class<T> để tạo object
     public T createInstance(Class<T> clazz) throws Exception {
         return clazz.getDeclaredConstructor().newInstance();
     }
 }
+
+// Sử dụng workaround:
+MyClass<String> mc = new MyClass<>();
+String s = mc.createInstance(String.class);
 ```
 
-### 6.3. Bridge Methods
+### 5.3. Hệ quả thực tế
 
 ```java
-public class Node<T> {
-    public T data;
+// 2 List khác kiểu nhưng runtime CÙNG class!
+List<String> strings = new ArrayList<>();
+List<Integer> numbers = new ArrayList<>();
 
-    public void setData(T data) {
-        this.data = data;
-    }
-}
-
-public class StringNode extends Node<String> {
-    @Override
-    public void setData(String data) {  // Override
-        super.setData(data);
-    }
-}
-
-// Compiler tạo bridge method:
-// public void setData(Object data) {
-//     setData((String) data);
-// }
+// Runtime: cả 2 đều là ArrayList (không có thông tin generic)
+System.out.println(strings.getClass() == numbers.getClass());
+// true! Cùng class ArrayList
 ```
 
 ---
 
-## 7. Generic Interfaces
+## 6. Generic Interfaces (Interface tổng quát)
+
+### Ví dụ thực tế: Repository Pattern
+
+Đây là pattern **RẤT PHỔ BIẾN** trong dự án thực tế (Spring Boot, ABP...).
 
 ```java
-// Generic interface
-public interface Comparable<T> {
-    int compareTo(T other);
-}
-
+// Generic interface cho CRUD operations
+// T = kiểu Entity, ID = kiểu của primary key
 public interface Repository<T, ID> {
-    T findById(ID id);
-    List<T> findAll();
-    void save(T entity);
-    void delete(ID id);
+    T findById(ID id);         // Tìm theo ID
+    List<T> findAll();         // Lấy tất cả
+    T save(T entity);          // Lưu (tạo mới hoặc cập nhật)
+    void delete(ID id);        // Xóa theo ID
+    boolean existsById(ID id); // Kiểm tra tồn tại
 }
 
-// Implementation
+// Implementation cho User (T = User, ID = Long)
 public class UserRepository implements Repository<User, Long> {
-    @Override
-    public User findById(Long id) { /* ... */ }
+    private Map<Long, User> database = new HashMap<>();
 
     @Override
-    public List<User> findAll() { /* ... */ }
+    public User findById(Long id) {
+        return database.get(id);
+    }
 
     @Override
-    public void save(User entity) { /* ... */ }
+    public List<User> findAll() {
+        return new ArrayList<>(database.values());
+    }
 
     @Override
-    public void delete(Long id) { /* ... */ }
+    public User save(User entity) {
+        database.put(entity.getId(), entity);
+        return entity;
+    }
+
+    @Override
+    public void delete(Long id) {
+        database.remove(id);
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return database.containsKey(id);
+    }
+}
+
+// Implementation cho Product (T = Product, ID = String)
+public class ProductRepository implements Repository<Product, String> {
+    // Cùng interface, khác kiểu dữ liệu!
+    // T = Product, ID = String (mã sản phẩm)
+
+    @Override
+    public Product findById(String id) { /* ... */ }
+    // ...
+}
+```
+
+💡 **Đây là sức mạnh của Generics:** Viết 1 interface, dùng cho **HÀNG TRĂM** entity khác nhau!
+
+---
+
+## 7. Sai lầm thường gặp
+
+### Sai lầm 1: Nghĩ List\<String\> là con của List\<Object\>
+
+```java
+// ❌ SAI: Đây KHÔNG phải quan hệ cha-con!
+List<Object> objects = new ArrayList<String>();  // COMPILE ERROR!
+
+// Tại sao? Vì nếu cho phép:
+List<Object> objects = stringList;
+objects.add(123);  // Bỏ Integer vào List<String>??? Hỗn loạn!
+
+// ✅ ĐÚNG: Dùng wildcard nếu cần
+List<?> anything = new ArrayList<String>();           // OK
+List<? extends Object> anything2 = new ArrayList<String>(); // OK
+```
+
+### Sai lầm 2: Thêm phần tử vào List\<? extends X\>
+
+```java
+List<? extends Number> numbers = new ArrayList<Integer>();
+
+// ❌ KHÔNG THỂ thêm phần tử!
+// numbers.add(1);      // ERROR!
+// numbers.add(1.0);    // ERROR!
+
+// Tại sao? Vì compiler không biết list THỰC SỰ chứa kiểu gì
+// Có thể là List<Integer>, List<Double>, List<Long>...
+// Thêm Integer vào List<Double>? Không an toàn!
+
+// ✅ CHỈ CÓ THỂ ĐỌC
+Number n = numbers.get(0);  // OK — đọc ra Number
+```
+
+### Sai lầm 3: Dùng primitive type cho Generic
+
+```java
+// ❌ SAI: Generics KHÔNG dùng được primitive type
+// List<int> numbers = new ArrayList<>();     // ERROR!
+// Box<double> box = new Box<>();             // ERROR!
+
+// ✅ ĐÚNG: Dùng Wrapper class
+List<Integer> numbers = new ArrayList<>();    // OK
+Box<Double> box = new Box<>();                // OK
+```
+
+### Sai lầm 4: So sánh generic type lúc runtime
+
+```java
+// ❌ Không có ý nghĩa do Type Erasure
+public static <T> boolean isString(T obj) {
+    // return obj instanceof T;  // ERROR! T bị xóa lúc runtime
+    return obj instanceof String;  // ✅ Phải dùng class cụ thể
 }
 ```
 
 ---
 
-## 8. Common Generic Patterns
+## 8. Tóm tắt cuối ngày
 
-### 8.1. Generic Singleton Factory
+### Bảng tổng hợp kiến thức
 
-```java
-public class SingletonFactory {
-    private static Map<Class<?>, Object> instances = new HashMap<>();
+| Khái niệm | Giải thích tiếng Việt | Cú pháp |
+|-----------|----------------------|---------|
+| **Generic Class** | Lớp tổng quát | `class Box<T> { }` |
+| **Generic Method** | Phương thức tổng quát | `<T> void print(T item)` |
+| **Type Parameter** | Tham số kiểu (biến kiểu) | `T`, `E`, `K`, `V` |
+| **Bounded Type** | Giới hạn kiểu | `<T extends Number>` |
+| **Multiple Bounds** | Nhiều giới hạn | `<T extends A & B>` |
+| **Unbounded Wildcard** | Bất kỳ kiểu | `List<?>` |
+| **Upper Bounded Wildcard** | Kiểu X hoặc con | `List<? extends X>` |
+| **Lower Bounded Wildcard** | Kiểu X hoặc cha | `List<? super X>` |
+| **PECS** | Producer Extends, Consumer Super | Đọc→extends, Ghi→super |
+| **Type Erasure** | Xóa kiểu lúc runtime | Generics chỉ tồn tại compile-time |
 
-    @SuppressWarnings("unchecked")
-    public static <T> T getInstance(Class<T> clazz) {
-        return (T) instances.computeIfAbsent(clazz, k -> {
-            try {
-                return k.getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-}
-```
+### 🔥 Câu hỏi phỏng vấn thường gặp
 
-### 8.2. Generic Builder
+1. **Generics là gì? Tại sao cần?**
+   → Cho phép viết code tái sử dụng cho nhiều kiểu. Type-safe lúc compile-time, không cần cast.
 
-```java
-public class Builder<T> {
-    private Map<String, Object> properties = new HashMap<>();
-    private Class<T> clazz;
+2. **`? extends T` vs `? super T` khác nhau thế nào?**
+   → `extends`: đọc (Producer), chấp nhận T hoặc con. `super`: ghi (Consumer), chấp nhận T hoặc cha.
 
-    public Builder(Class<T> clazz) {
-        this.clazz = clazz;
-    }
+3. **PECS là gì?**
+   → Producer Extends, Consumer Super. Đọc từ source dùng extends, ghi vào dest dùng super.
 
-    public Builder<T> with(String name, Object value) {
-        properties.put(name, value);
-        return this;
-    }
+4. **Type Erasure là gì?**
+   → Compiler xóa thông tin generic lúc runtime. `List<String>` trở thành `List` lúc chạy.
 
-    public T build() throws Exception {
-        T instance = clazz.getDeclaredConstructor().newInstance();
-        for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            Field field = clazz.getDeclaredField(entry.getKey());
-            field.setAccessible(true);
-            field.set(instance, entry.getValue());
-        }
-        return instance;
-    }
-}
-```
+5. **Tại sao `List<String>` không phải subtype của `List<Object>`?**
+   → Vì nếu cho phép, có thể thêm Object khác kiểu vào List<String> → phá vỡ type safety.
 
-### 8.3. Generic DAO
-
-```java
-public interface GenericDao<T, ID> {
-    T findById(ID id);
-    List<T> findAll();
-    T save(T entity);
-    void delete(T entity);
-    void deleteById(ID id);
-}
-
-public abstract class AbstractDao<T, ID> implements GenericDao<T, ID> {
-    protected Class<T> entityClass;
-
-    @SuppressWarnings("unchecked")
-    public AbstractDao() {
-        ParameterizedType type = (ParameterizedType) getClass().getGenericSuperclass();
-        this.entityClass = (Class<T>) type.getActualTypeArguments()[0];
-    }
-
-    // Common implementation...
-}
-
-public class UserDao extends AbstractDao<User, Long> {
-    // User-specific methods...
-}
-```
+6. **Có thể dùng primitive type cho Generics không?**
+   → Không. Phải dùng Wrapper: `List<Integer>` thay vì `List<int>`.
 
 ---
 
 ## 9. Bài tập thực hành
 
-### Bài 1: Generic Stack
+### Bài 1: Generic Stack (Ngăn xếp tổng quát)
+
 Implement Stack với generics:
-- push(T item)
-- pop(): T
-- peek(): T
-- isEmpty(): boolean
-- size(): int
+- `push(T item)` — Thêm phần tử lên đỉnh
+- `pop(): T` — Lấy và xóa phần tử đỉnh
+- `peek(): T` — Xem phần tử đỉnh (không xóa)
+- `isEmpty(): boolean` — Kiểm tra rỗng
+- `size(): int` — Số phần tử
 
----
+### Bài 2: Generic Filter (Lọc tổng quát)
 
-### Bài 2: Generic Pair Utils
-Tạo utility class cho Pair:
-- swap(Pair<K,V>): Pair<V,K>
-- createFromArray(T[]): List<Pair<Integer, T>>
-- toMap(List<Pair<K,V>>): Map<K,V>
-
----
-
-### Bài 3: Generic Filter
-Tạo generic filter method:
+Tạo method lọc danh sách theo điều kiện bất kỳ:
 
 ```java
-public static <T> List<T> filter(List<T> list, Predicate<T> predicate) {
-    // Return items matching predicate
-}
-
-// Usage:
 List<Integer> evens = filter(numbers, n -> n % 2 == 0);
-List<String> longStrings = filter(strings, s -> s.length() > 5);
+List<String> longNames = filter(names, s -> s.length() > 5);
 ```
 
----
+### Bài 3: Generic Cache (Bộ nhớ đệm tổng quát)
 
-### Bài 4: Generic Cache
-Implement generic cache với expiration:
+Implement cache có thời gian hết hạn (TTL):
 
 ```java
-Cache<String, User> userCache = new Cache<>(60000);  // 60s TTL
-userCache.put("user1", user);
-User cached = userCache.get("user1");  // null if expired
+Cache<String, User> cache = new Cache<>(60000); // 60 giây
+cache.put("user1", user);
+User cached = cache.get("user1"); // null nếu đã hết hạn
 ```
 
----
+### Bài 4: Generic Pair Utils
 
-### Bài 5: Generic Tree
-Implement binary tree với generics:
+Tạo utility class:
+- `swap(Pair<K,V>)`: Pair<V,K> — Hoán đổi key và value
+- `toMap(List<Pair<K,V>>)`: Map<K,V> — Chuyển list cặp thành Map
+
+### Bài 5: Generic Binary Tree (Cây nhị phân tổng quát)
 
 ```java
 BinaryTree<Integer> tree = new BinaryTree<>();
 tree.insert(5);
 tree.insert(3);
 tree.insert(7);
-boolean found = tree.contains(3);  // true
-List<Integer> inorder = tree.inorderTraversal();
+boolean found = tree.contains(3);          // true
+List<Integer> sorted = tree.inorderTraversal(); // [3, 5, 7]
 ```
 
 ---
@@ -596,28 +855,33 @@ List<Integer> inorder = tree.inorderTraversal();
 ## 10. Đáp án tham khảo
 
 <details>
-<summary>Bài 1: Generic Stack</summary>
+<summary>Bài 1: Generic Stack (Click để xem)</summary>
 
 ```java
-public class Stack<T> {
-    private List<T> items = new ArrayList<>();
+import java.util.*;
 
+public class Stack<T> {
+    private List<T> items = new ArrayList<>(); // Dùng ArrayList bên trong
+
+    // Thêm phần tử lên đỉnh
     public void push(T item) {
-        items.add(item);
+        items.add(item); // Thêm vào cuối = đỉnh stack
     }
 
+    // Lấy và XÓA phần tử đỉnh
     public T pop() {
         if (isEmpty()) {
-            throw new EmptyStackException();
+            throw new EmptyStackException(); // Stack rỗng → lỗi
         }
-        return items.remove(items.size() - 1);
+        return items.remove(items.size() - 1); // Xóa phần tử cuối
     }
 
+    // Xem phần tử đỉnh (KHÔNG xóa)
     public T peek() {
         if (isEmpty()) {
             throw new EmptyStackException();
         }
-        return items.get(items.size() - 1);
+        return items.get(items.size() - 1); // Lấy phần tử cuối
     }
 
     public boolean isEmpty() {
@@ -629,31 +893,41 @@ public class Stack<T> {
     }
 
     public static void main(String[] args) {
+        // Stack<String>
         Stack<String> stack = new Stack<>();
         stack.push("A");
         stack.push("B");
         stack.push("C");
 
-        System.out.println(stack.peek());  // C
-        System.out.println(stack.pop());   // C
-        System.out.println(stack.size());  // 2
+        System.out.println(stack.peek());  // C (đỉnh)
+        System.out.println(stack.pop());   // C (lấy ra + xóa)
+        System.out.println(stack.pop());   // B
+        System.out.println(stack.size());  // 1 (chỉ còn A)
+
+        // Stack<Integer>
+        Stack<Integer> numStack = new Stack<>();
+        numStack.push(10);
+        numStack.push(20);
+        System.out.println(numStack.pop());  // 20
     }
 }
 ```
 </details>
 
 <details>
-<summary>Bài 3: Generic Filter</summary>
+<summary>Bài 2: Generic Filter (Click để xem)</summary>
 
 ```java
+import java.util.*;
 import java.util.function.Predicate;
 
 public class FilterUtils {
 
-    public static <T> List<T> filter(List<T> list, Predicate<T> predicate) {
+    // Lọc danh sách theo điều kiện (Predicate)
+    public static <T> List<T> filter(List<T> list, Predicate<T> condition) {
         List<T> result = new ArrayList<>();
         for (T item : list) {
-            if (predicate.test(item)) {
+            if (condition.test(item)) { // Kiểm tra điều kiện
                 result.add(item);
             }
         }
@@ -661,85 +935,88 @@ public class FilterUtils {
     }
 
     public static void main(String[] args) {
-        List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
-        // Filter even numbers
+        // Lọc số chẵn
         List<Integer> evens = filter(numbers, n -> n % 2 == 0);
-        System.out.println(evens);  // [2, 4, 6, 8, 10]
+        System.out.println("Số chẵn: " + evens);  // [2, 4, 6, 8, 10]
 
-        // Filter numbers > 5
-        List<Integer> greaterThan5 = filter(numbers, n -> n > 5);
-        System.out.println(greaterThan5);  // [6, 7, 8, 9, 10]
+        // Lọc số > 5
+        List<Integer> big = filter(numbers, n -> n > 5);
+        System.out.println("Số > 5: " + big);     // [6, 7, 8, 9, 10]
 
-        List<String> strings = Arrays.asList("apple", "pie", "banana", "hi");
-        List<String> longStrings = filter(strings, s -> s.length() > 3);
-        System.out.println(longStrings);  // [apple, banana]
+        List<String> names = List.of("An", "Bình", "Châu", "Dung", "Em");
+        // Lọc tên dài > 2 ký tự
+        List<String> longNames = filter(names, s -> s.length() > 2);
+        System.out.println("Tên dài: " + longNames);  // [Bình, Châu, Dung]
     }
 }
 ```
 </details>
 
 <details>
-<summary>Bài 4: Generic Cache</summary>
+<summary>Bài 3: Generic Cache (Click để xem)</summary>
 
 ```java
+import java.util.*;
+
 public class Cache<K, V> {
-    private Map<K, CacheEntry<V>> cache = new HashMap<>();
-    private long ttlMillis;
+    private Map<K, CacheEntry<V>> store = new HashMap<>();
+    private long ttlMillis; // Thời gian sống (milliseconds)
 
     public Cache(long ttlMillis) {
         this.ttlMillis = ttlMillis;
     }
 
+    // Lưu vào cache
     public void put(K key, V value) {
-        cache.put(key, new CacheEntry<>(value, System.currentTimeMillis()));
+        store.put(key, new CacheEntry<>(value, System.currentTimeMillis()));
     }
 
+    // Lấy từ cache (null nếu hết hạn hoặc không có)
     public V get(K key) {
-        CacheEntry<V> entry = cache.get(key);
-        if (entry == null) {
+        CacheEntry<V> entry = store.get(key);
+        if (entry == null) return null;
+
+        // Kiểm tra hết hạn chưa
+        if (System.currentTimeMillis() - entry.createdAt > ttlMillis) {
+            store.remove(key); // Xóa entry hết hạn
             return null;
         }
-        if (isExpired(entry)) {
-            cache.remove(key);
-            return null;
-        }
-        return entry.getValue();
+        return entry.value;
     }
 
     public void remove(K key) {
-        cache.remove(key);
+        store.remove(key);
     }
 
     public void clear() {
-        cache.clear();
+        store.clear();
     }
 
-    private boolean isExpired(CacheEntry<V> entry) {
-        return System.currentTimeMillis() - entry.getCreatedAt() > ttlMillis;
+    public int size() {
+        return store.size();
     }
 
+    // Class lưu value + thời điểm tạo
     private static class CacheEntry<V> {
-        private V value;
-        private long createdAt;
+        V value;
+        long createdAt;
 
-        public CacheEntry(V value, long createdAt) {
+        CacheEntry(V value, long createdAt) {
             this.value = value;
             this.createdAt = createdAt;
         }
-
-        public V getValue() { return value; }
-        public long getCreatedAt() { return createdAt; }
     }
 
     public static void main(String[] args) throws InterruptedException {
-        Cache<String, String> cache = new Cache<>(1000);  // 1 second TTL
+        Cache<String, String> cache = new Cache<>(1000); // TTL = 1 giây
 
         cache.put("key1", "value1");
-        System.out.println(cache.get("key1"));  // value1
+        System.out.println(cache.get("key1")); // "value1" ✅
 
-        Thread.sleep(1500);
-        System.out.println(cache.get("key1"));  // null (expired)
+        Thread.sleep(1500); // Đợi 1.5 giây
+        System.out.println(cache.get("key1")); // null (đã hết hạn)
     }
 }
 ```
@@ -749,5 +1026,5 @@ public class Cache<K, V> {
 
 ## Navigation
 
-- [← Day 7: Collections Basics](./day-07-collections-basics.md)
-- [Day 9: Lambda & Functional →](./day-09-lambda-functional.md)
+- [← Day 7: Collections Basics (Bộ Sưu Tập)](./day-07-collections-basics.md)
+- [Day 9: Lambda & Functional (Lambda & Hàm) →](./day-09-lambda-functional.md)
